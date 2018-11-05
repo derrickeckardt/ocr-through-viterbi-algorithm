@@ -1,8 +1,9 @@
 ###################################
 # CS B551 Fall 2018, Assignment #3
 #
-# Your names and user ids:
-#
+# Completed by:
+# Derrick Eckardt
+# derrick@iu.edu
 # (Based on skeleton code by D. Crandall)
 #
 #

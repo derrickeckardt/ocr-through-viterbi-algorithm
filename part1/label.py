@@ -26,7 +26,6 @@ def read_data(fname):
 
     return exemplars
 
-
 ####################
 # Main program
 #
