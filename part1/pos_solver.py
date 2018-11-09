@@ -49,15 +49,18 @@ class Solver:
                 print each[1]
                 print each[1][0]
             p_s1[each[1][0]] += 1
-            for (words, parts) in each:
+            last_pos = ""
+            for word, part in zip(each[0],each[1]):
                 p_wi_si[part+"--"+word] += 1
-
+                if last_pos != "":
+                    p_s2_s1[part+"--"+last_pos] += 1
+                last_pos = part
 
         print p_s1
         print sum(p_s1.values())
-        print p_wi_si
+        # print p_wi_si
         print sum(p_wi_si.values())
-
+        print p_s2_s1
 
     # Functions for each algorithm. Right now this just returns nouns -- fix this!
     #
