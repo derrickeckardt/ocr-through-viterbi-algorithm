@@ -13,12 +13,13 @@
 
 import random
 import math
-
+from collections import Counter
 
 # We've set up a suggested code structure, but feel free to change it. Just
 # make sure your code still works with the label.py and pos_scorer.py code
 # that we've supplied.
 #
+
 class Solver:
     # Calculate the log of the posterior probability of a given sentence
     #  with a given part-of-speech labeling. Right now just returns -999 -- fix this!
@@ -35,7 +36,28 @@ class Solver:
     # Do the training!
     #
     def train(self, data):
-        pass
+        # Estimate the probabilities of P(S1), P(Si+1|Si), P(Wi|Si)
+        # List of different parts of speech
+        pos = ["ADJ","ADV","ADP","CONJ","DET","NOUN","NUM","PRON","PRT","VERB","X","."]
+        p_s1 = Counter()
+        p_s2_s1 = Counter()
+        p_wi_si = Counter()
+        for i, each in zip(range(len(data)),data):
+            if i == 0:
+                print each
+                print each[0]
+                print each[1]
+                print each[1][0]
+            p_s1[each[1][0]] += 1
+            for (words, parts) in each:
+                p_wi_si[part+"--"+word] += 1
+
+
+        print p_s1
+        print sum(p_s1.values())
+        print p_wi_si
+        print sum(p_wi_si.values())
+
 
     # Functions for each algorithm. Right now this just returns nouns -- fix this!
     #
