@@ -11,7 +11,7 @@
 #   python ./label.py bc.train bc.test.tiny
 #
 
-from pos_scorer import Score
+from pos_scorer import Score    
 from pos_solver import *
 import sys
 

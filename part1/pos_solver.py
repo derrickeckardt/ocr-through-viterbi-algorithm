@@ -13,7 +13,7 @@
 
 import random
 import math
-from collections import Counter
+from collections import defaultdict, Counter
 
 # We've set up a suggested code structure, but feel free to change it. Just
 # make sure your code still works with the label.py and pos_scorer.py code
@@ -23,6 +23,14 @@ from collections import Counter
 class Solver:
     # Calculate the log of the posterior probability of a given sentence
     #  with a given part-of-speech labeling. Right now just returns -999 -- fix this!
+    def __init__(self):
+        self.p_s1 = Counter()
+        self.p_si1_si = {}
+        self.p_wi_si = {}
+        for pos in ["adj","adv","adp","conj","det","noun","num","pron","prt","verb","x","."]:
+             self.p_wi_si[pos] = Counter()
+             self.p_si1_si[pos] = Counter()
+    
     def posterior(self, model, sentence, label):
         if model == "Simple":
             return -999
@@ -38,33 +46,31 @@ class Solver:
     def train(self, data):
         # Estimate the probabilities of P(S1), P(Si+1|Si), P(Wi|Si)
         # List of different parts of speech
-        pos = ["ADJ","ADV","ADP","CONJ","DET","NOUN","NUM","PRON","PRT","VERB","X","."]
-        p_s1 = Counter()
-        p_s2_s1 = Counter()
-        p_wi_si = Counter()
-        for i, each in zip(range(len(data)),data):
-            if i == 0:
-                print each
-                print each[0]
-                print each[1]
-                print each[1][0]
-            p_s1[each[1][0]] += 1
+        for each in data:
+            self.p_s1[each[1][0]] += 1
             last_pos = ""
             for word, part in zip(each[0],each[1]):
-                p_wi_si[part+"--"+word] += 1
+                if word in self.p_wi_si[part]:
+                    self.p_wi_si[part][word] += 1
+                else:
+                    self.p_wi_si[part][word] = 1
                 if last_pos != "":
-                    p_s2_s1[part+"--"+last_pos] += 1
+                    if part in self.p_si1_si[last_pos]:
+                        self.p_si1_si[last_pos][part] += 1
+                    else:
+                        self.p_si1_si[last_pos][part] = 1
                 last_pos = part
-
-        print p_s1
-        print sum(p_s1.values())
-        # print p_wi_si
-        print sum(p_wi_si.values())
-        print p_s2_s1
-
+        print self.p_s1
+        print self.p_si1_si
+        # return self.p_s1, self.p_si1_si, self.p_wi_si
+    
     # Functions for each algorithm. Right now this just returns nouns -- fix this!
     #
     def simplified(self, sentence):
+        simplified_model = []
+        for item in sentence:
+            simplified_model.extend([self.p_s1[item]])
+        print simplified_model
         return [ "noun" ] * len(sentence)
 
     def complex_mcmc(self, sentence):
