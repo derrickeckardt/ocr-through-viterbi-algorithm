@@ -15,6 +15,7 @@ import random
 import math
 from collections import defaultdict, Counter
 
+
 # We've set up a suggested code structure, but feel free to change it. Just
 # make sure your code still works with the label.py and pos_scorer.py code
 # that we've supplied.
@@ -25,15 +26,20 @@ class Solver:
     #  with a given part-of-speech labeling. Right now just returns -999 -- fix this!
     def __init__(self):
         self.p_s1 = Counter()
-        self.p_si1_si = {}
+        self.p_si1_si = {} # Previous state
+        self.p_si2_si = {} # Two states agp
         self.p_wi_si = {}
         for pos in ["adj","adv","adp","conj","det","noun","num","pron","prt","verb","x","."]:
              self.p_wi_si[pos] = Counter()
              self.p_si1_si[pos] = Counter()
+             self.p_si2_si[pos] = Counter()
     
     def posterior(self, model, sentence, label):
         if model == "Simple":
-            return -999
+            answer = 0
+            # for word in sentence:
+            #     answer += log(self.p_wi_si)
+            return answer    
         elif model == "Complex":
             return -999
         elif model == "HMM":
@@ -49,19 +55,28 @@ class Solver:
         for each in data:
             self.p_s1[each[1][0]] += 1
             last_pos = ""
+            two_ago_pos =""
             for word, part in zip(each[0],each[1]):
                 if word in self.p_wi_si[part]:
                     self.p_wi_si[part][word] += 1
                 else:
                     self.p_wi_si[part][word] = 1
+                if two_ago_pos != "":
+                    if part in self.p_si2_si[last_pos]:
+                        self.p_si2_si[last_pos][part] += 1
+                    else:
+                        self.p_si2_si[last_pos][part] = 1
                 if last_pos != "":
                     if part in self.p_si1_si[last_pos]:
                         self.p_si1_si[last_pos][part] += 1
                     else:
                         self.p_si1_si[last_pos][part] = 1
+                    two_ago_pos = last_pos 
                 last_pos = part
+
         print self.p_s1
         print self.p_si1_si
+        print self.p_si2_si
         # return self.p_s1, self.p_si1_si, self.p_wi_si
     
     # Functions for each algorithm. Right now this just returns nouns -- fix this!
