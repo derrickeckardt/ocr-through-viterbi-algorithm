@@ -24,6 +24,10 @@ from time import sleep
 # that we've supplied.
 #
 
+# Things to do to make it better
+# Turn the counters into decimals values to make reading the formulas easier instead of calculating them each time.
+# Find the values 
+
 class Solver:
     # Calculate the log of the posterior probability of a given sentence
     #  with a given part-of-speech labeling. Right now just returns -999 -- fix this!
@@ -34,27 +38,40 @@ class Solver:
         self.unique_words = 0
         self.unique_lines = 0
         self.p_si1_si = {} # Previous state
-        self.p_si2_si = {} # Two states agp
+        self.p_si2_si1_si = {} # Two states agp
         self.p_wi_si = {}
         self.pos = ["adj","adv","adp","conj","det","noun","num","pron","prt","verb","x","."]
         for pos in self.pos:
              self.p_wi_si[pos] = Counter()
              self.p_si1_si[pos] = Counter()
-             self.p_si2_si[pos] = Counter()
+             self.p_si2_si1_si[pos] = {}
+             for part in self.pos:
+                 self.p_si2_si1_si[pos][part] = Counter()
+                 
     
     def posterior(self, model, sentence, label):
         if model == "Simple":
             interim = 0
             for word,part in zip(sentence,label):
-# Need to devide by denominator
-                word_interim = (self.p_wi_si[part][word] / float(self.p_si[part])) * ((self.p_si[part])/float(self.unique_words))
-# Double check the use of math.log(1/float(self,unique words)
-                interim += math.log(word_interim) if word_interim != 0 else math.log(1/float(self.unique_words)) 
+                # Added plus one to numerator and denominator to smooth for unknown words
+                word_interim = ((self.p_wi_si[part][word]+1) / float(self.p_si[part]+1)) * ((self.p_si[part] + 1)/float(self.unique_words+1))
+                interim += math.log(word_interim)
+            return interim
+        elif model == "HMM":
+            # First word in the sentence is the same as the simple model
+            interim = Solver.posterior(self,"Simple",[sentence[0]],[label[0]])
+            # rest of elements
+            if len(sentence) > 1:
+                for word, part, i in zip(sentence[1:],label[1:], range(1,len(sentence))):
+                    interim += math.log(((self.p_wi_si[part][word]+1) / float(self.p_si[part]+1))*((self.p_si1_si[label[i-1]][part] + 1)/float(self.p_si[label[i-1]]+1)))
             return interim
         elif model == "Complex":
-            return -999
-        elif model == "HMM":
-            return -999
+            # First two words in the sentence are the same as the hmm model
+            interim = Solver.posterior(self,"HMM",sentence[0:2],label[0:2])
+            if len(sentence) > 2:
+                for word, part, i in zip(sentence[2:],label[2:], range(2,len(sentence))):
+                    interim += math.log(((self.p_wi_si[part][word]+1) / float(self.p_si[part]+1))*((self.p_si2_si1_si[label[i-2]][label[i-1]][part] + 1)/float(sum(self.p_si2_si1_si[label[i-2]][label[i-1]].values())+1)))
+            return interim
         else:
             print("Unknown algo!")
 
@@ -75,10 +92,10 @@ class Solver:
                 else:
                     self.p_wi_si[part][word] = 1
                 if two_ago_pos != "":
-                    if part in self.p_si2_si[last_pos]:
-                        self.p_si2_si[last_pos][part] += 1
+                    if part in self.p_si2_si1_si[two_ago_pos][last_pos]:
+                        self.p_si2_si1_si[two_ago_pos][last_pos][part] += 1
                     else:
-                        self.p_si2_si[last_pos][part] = 1
+                        self.p_si2_si1_si[two_ago_pos][last_pos][part] = 1
                 if last_pos != "":
                     if part in self.p_si1_si[last_pos]:
                         self.p_si1_si[last_pos][part] += 1
@@ -92,7 +109,7 @@ class Solver:
         self.unique_lines = sum(self.p_s1.values())
         # print self.p_s1
         # print self.p_si1_si
-        # print self.p_si2_si
+        # print self.p_si2_si1_si
         # return self.p_s1, self.p_si1_si, self.p_wi_si
     
     # Functions for each algorithm. Right now this just returns nouns -- fix this!
@@ -103,7 +120,6 @@ class Solver:
         for word in sentence:
             pos_values = []
             for pos in self.pos:
-# Need to divide by denominator
                 interim = (self.p_wi_si[pos][word] / float(self.p_si[pos])) * ((self.p_si[pos])/float(self.unique_words))
                 pos_values.extend([[interim, pos]])
             pos_values = sorted(pos_values, key=itemgetter(0), reverse=True)
@@ -116,6 +132,7 @@ class Solver:
         return [ "noun" ] * len(sentence)
 
     def hmm_viterbi(self, sentence):
+        return ["noun"]*len(sentence)
         viterbi_model = []
         # first word in sentence
         for pos in self.pos:
