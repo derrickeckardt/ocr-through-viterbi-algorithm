@@ -137,11 +137,7 @@ class Solver:
             # one added to both in the event it is a new word or a word being used in a new form.
             viterbi_model.extend([[0,(self.p_s1[pos]+1)/float(self.unique_lines+1)*(self.p_wi_si[pos][sentence[0]]+1)/float(self.p_si[pos]+1), pos, pos]])
         
-        # print viterbi_model
-        # redo second part
-        # for 
-
-    
+        # Rest of sentence 
         if len(sentence) > 1:
             for word in sentence[1:]:  # Remove 2 later on once its running
                 viterbi_maxes =[]
@@ -153,42 +149,17 @@ class Solver:
                     viterbi_max = sorted(viterbi_temp, key=itemgetter(1), reverse = True)[0]
                     viterbi_maxes.extend([viterbi_max])
                 viterbi_model = viterbi_maxes * 1
-        
-        likely_path = sorted(viterbi_model,key=itemgetter(1), reverse=True)[0][2].split()
 
+        # backtrack now
+        likely_path = sorted(viterbi_model,key=itemgetter(1), reverse=True)[0][2].split()
 
         # print len(viterbi_temp)
         # print sorted(viterbi_maxes, key=itemgetter(3), reverse = True)
         # print viterbi_max
+
     
         return likely_path
     
-        # second word to last word in sentence
-        # viterbi_temp = viterbi_model*1
-        # for word, i in zip(sentence[1:],range(1,len(sentence))):
-        #     viterbi_last = viterbi_temp * 1
-        #     viterbi_temp = []
-        #     for n, value, predecessor, old_pos in viterbi_last:
-        #         for pos in self.pos:
-        #             if self.p_wi_si[pos][word] !=0 and self.p_si1_si[old_pos][pos] !=0:
-        #                 #print n, value, predecessor, old_pos
-        #                 #sleep(5)
-        #                 viterbi_temp.extend([[i,self.p_si1_si[old_pos][pos]/float(self.p_si[old_pos])*self.p_wi_si[pos][word]/float(self.p_si[pos]), old_pos, pos]])
-        #         if len(viterbi_temp) == 0:
-        #             if self.p_si1_si[pos][word] !=0:
-        #                 viterbi_temp.extend([[i,1/float(self.p_si[old_pos])*self.p_wi_si[pos][word]/float(self.p_si[pos]), old_pos, pos]])
-        #             else:
-        #                 viterbi_temp.extend([[i,1/float(self.p_si[old_pos])*1/float(self.p_si[pos]), old_pos, pos]])
-                        
-        #     viterbi_model.extend(viterbi_temp)
-        #     print viterbi_temp
-
-        
-        # backtrack now
-
-        return [ "noun" ] * len(sentence)
-
-
     # This solve() method is called by label.py, so you should keep the interface the
     #  same, but you can change the code itself. 
     # It should return a list of part-of-speech labelings of the sentence, one
