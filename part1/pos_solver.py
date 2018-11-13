@@ -12,7 +12,7 @@
 ####
 
 import random
-import math
+from math import log
 from collections import defaultdict, Counter
 from operator import itemgetter
 from pprint import pprint
@@ -26,7 +26,7 @@ from time import sleep
 
 # Things to do to make it better
 # Turn the counters into decimals values to make reading the formulas easier instead of calculating them each time.
-# Find the values 
+# For viterbi, the smoothing favors x for foreign words for unknown words... 
 
 class Solver:
     # Calculate the log of the posterior probability of a given sentence
@@ -54,8 +54,7 @@ class Solver:
             interim = 0
             for word,part in zip(sentence,label):
                 # Added plus one to numerator and denominator to smooth for unknown words
-                word_interim = ((self.p_wi_si[part][word]+1) / float(self.p_si[part]+1)) * ((self.p_si[part] + 1)/float(self.unique_words+1))
-                interim += math.log(word_interim)
+                interim += log(((self.p_wi_si[part][word]+1) / float(self.p_si[part]+1)) * ((self.p_si[part] + 1)/float(self.unique_words+1)))
             return interim
         elif model == "HMM":
             # First word in the sentence is the same as the simple model
@@ -63,14 +62,14 @@ class Solver:
             # rest of elements
             if len(sentence) > 1:
                 for word, part, i in zip(sentence[1:],label[1:], range(1,len(sentence))):
-                    interim += math.log(((self.p_wi_si[part][word]+1) / float(self.p_si[part]+1))*((self.p_si1_si[label[i-1]][part] + 1)/float(self.p_si[label[i-1]]+1)))
+                    interim += log(((self.p_wi_si[part][word]+1) / float(self.p_si[part]+1))*((self.p_si1_si[label[i-1]][part] + 1)/float(self.p_si[label[i-1]]+1)))
             return interim
         elif model == "Complex":
             # First two words in the sentence are the same as the hmm model
             interim = Solver.posterior(self,"HMM",sentence[0:2],label[0:2])
             if len(sentence) > 2:
                 for word, part, i in zip(sentence[2:],label[2:], range(2,len(sentence))):
-                    interim += math.log(((self.p_wi_si[part][word]+1) / float(self.p_si[part]+1))*((self.p_si2_si1_si[label[i-2]][label[i-1]][part] + 1)/float(sum(self.p_si2_si1_si[label[i-2]][label[i-1]].values())+1)))
+                    interim += log(((self.p_wi_si[part][word]+1) / float(self.p_si[part]+1))*((self.p_si2_si1_si[label[i-2]][label[i-1]][part] + 1)/float(sum(self.p_si2_si1_si[label[i-2]][label[i-1]].values())+1)))
             return interim
         else:
             print("Unknown algo!")
@@ -115,7 +114,6 @@ class Solver:
     # Functions for each algorithm. Right now this just returns nouns -- fix this!
     #
     def simplified(self, sentence):
-        print sentence
         simplified_model = []
         for word in sentence:
             pos_values = []
@@ -132,46 +130,62 @@ class Solver:
         return [ "noun" ] * len(sentence)
 
     def hmm_viterbi(self, sentence):
-        return ["noun"]*len(sentence)
         viterbi_model = []
         # first word in sentence
         for pos in self.pos:
-            # sublist to the form of [position_no, p(si), came_from_pos, pos], only with the words that appear
-            if self.p_wi_si[pos][sentence[0]] != 0:
-                viterbi_model.extend([[0,self.p_s1[pos]/float(self.unique_lines)*self.p_wi_si[pos][sentence[0]]/float(self.p_si[pos]), "self", pos]])
-        # Double check in case there are no values, will generate with each pos as if there was exactly one occurance
-        if len(viterbi_model) == 0:
-            for pos in self.pos:
-                viterbi_model.extend([[0,self.p_s1[pos]/float(self.unique_lines)*1/self.p_si[pos], "self", pos]])
-            
-        # second word to last word in sentence
-        viterbi_temp = viterbi_model*1
-        for word, i in zip(sentence[1:],range(1,len(sentence))):
-            viterbi_last = viterbi_temp * 1
-            viterbi_temp = []
-            for n, value, predecessor, old_pos in viterbi_last:
-                for pos in self.pos:
-                    if self.p_wi_si[pos][word] !=0 and self.p_si1_si[old_pos][pos] !=0:
-                        #print n, value, predecessor, old_pos
-                        #sleep(5)
-                        viterbi_temp.extend([[i,self.p_si1_si[old_pos][pos]/float(self.p_si[old_pos])*self.p_wi_si[pos][word]/float(self.p_si[pos]), old_pos, pos]])
-                if len(viterbi_temp) == 0:
-                    if self.p_si1_si[pos][word] !=0:
-                        viterbi_temp.extend([[i,1/float(self.p_si[old_pos])*self.p_wi_si[pos][word]/float(self.p_si[pos]), old_pos, pos]])
-                    else:
-                        viterbi_temp.extend([[i,1/float(self.p_si[old_pos])*1/float(self.p_si[pos]), old_pos, pos]])
-                        
-            viterbi_model.extend(viterbi_temp)
-            print viterbi_temp
-            sleep(5)
+            # sublist to the form of [position_no, value, path, pos], only with the words that appear
+            # one added to both in the event it is a new word or a word being used in a new form.
+            viterbi_model.extend([[0,(self.p_s1[pos]+1)/float(self.unique_lines+1)*(self.p_wi_si[pos][sentence[0]]+1)/float(self.p_si[pos]+1), pos, pos]])
         
+        # print viterbi_model
+        # redo second part
+        # for 
+
+    
+        if len(sentence) > 1:
+            for word in sentence[1:]:  # Remove 2 later on once its running
+                viterbi_maxes =[]
+                for pos in self.pos:
+                    viterbi_temp = []
+                    for n, value, path, last_pos in viterbi_model:
+                        new_value = value*(self.p_si1_si[last_pos][pos]+1)/float(self.p_si[last_pos]+1)*(self.p_wi_si[pos][word]+1)/float(self.p_si[pos]+1)
+                        viterbi_temp.extend([[n+1, new_value, path+" "+pos, pos]])
+                    viterbi_max = sorted(viterbi_temp, key=itemgetter(1), reverse = True)[0]
+                    viterbi_maxes.extend([viterbi_max])
+                viterbi_model = viterbi_maxes * 1
+        
+        likely_path = sorted(viterbi_model,key=itemgetter(1), reverse=True)[0][2].split()
+
+
+        # print len(viterbi_temp)
+        # print sorted(viterbi_maxes, key=itemgetter(3), reverse = True)
+        # print viterbi_max
+    
+        return likely_path
+    
+        # second word to last word in sentence
+        # viterbi_temp = viterbi_model*1
+        # for word, i in zip(sentence[1:],range(1,len(sentence))):
+        #     viterbi_last = viterbi_temp * 1
+        #     viterbi_temp = []
+        #     for n, value, predecessor, old_pos in viterbi_last:
+        #         for pos in self.pos:
+        #             if self.p_wi_si[pos][word] !=0 and self.p_si1_si[old_pos][pos] !=0:
+        #                 #print n, value, predecessor, old_pos
+        #                 #sleep(5)
+        #                 viterbi_temp.extend([[i,self.p_si1_si[old_pos][pos]/float(self.p_si[old_pos])*self.p_wi_si[pos][word]/float(self.p_si[pos]), old_pos, pos]])
+        #         if len(viterbi_temp) == 0:
+        #             if self.p_si1_si[pos][word] !=0:
+        #                 viterbi_temp.extend([[i,1/float(self.p_si[old_pos])*self.p_wi_si[pos][word]/float(self.p_si[pos]), old_pos, pos]])
+        #             else:
+        #                 viterbi_temp.extend([[i,1/float(self.p_si[old_pos])*1/float(self.p_si[pos]), old_pos, pos]])
+                        
+        #     viterbi_model.extend(viterbi_temp)
+        #     print viterbi_temp
+
         
         # backtrack now
-        if len(viterbi_model) > 40:
-            print viterbi_model[-40:]
-        else:
-            print viterbi_model
-            
+
         return [ "noun" ] * len(sentence)
 
 
