@@ -47,6 +47,8 @@ class Solver:
              self.p_si2_si1_si[pos] = {}
              for part in self.pos:
                  self.p_si2_si1_si[pos][part] = Counter()
+        self.c = 1 # used for smoothing, with training, will hange it to 1/ total words.
+        # when i used one, it tended to favor x words which were unknown foreign words. which would then impact other words, causing others to be misclassified.
                  
     
     def posterior(self, model, sentence, label):
@@ -54,7 +56,7 @@ class Solver:
             interim = 0
             for word,part in zip(sentence,label):
                 # Added plus one to numerator and denominator to smooth for unknown words
-                interim += log(((self.p_wi_si[part][word]+1) / float(self.p_si[part]+1)) * ((self.p_si[part] + 1)/float(self.unique_words+1)))
+                interim += log(((self.p_wi_si[part][word]+self.c) / float(self.p_si[part]+self.c)) * ((self.p_si[part] + self.c)/float(self.unique_words+self.c)))
             return interim
         elif model == "HMM":
             # First word in the sentence is the same as the simple model
@@ -62,14 +64,14 @@ class Solver:
             # rest of elements
             if len(sentence) > 1:
                 for word, part, i in zip(sentence[1:],label[1:], range(1,len(sentence))):
-                    interim += log(((self.p_wi_si[part][word]+1) / float(self.p_si[part]+1))*((self.p_si1_si[label[i-1]][part] + 1)/float(self.p_si[label[i-1]]+1)))
+                    interim += log(((self.p_wi_si[part][word]+self.c) / float(self.p_si[part]+self.c))*((self.p_si1_si[label[i-1]][part] + 1)/float(self.p_si[label[i-1]]+self.c)))
             return interim
         elif model == "Complex":
             # First two words in the sentence are the same as the hmm model
             interim = Solver.posterior(self,"HMM",sentence[0:2],label[0:2])
             if len(sentence) > 2:
                 for word, part, i in zip(sentence[2:],label[2:], range(2,len(sentence))):
-                    interim += log(((self.p_wi_si[part][word]+1) / float(self.p_si[part]+1))*((self.p_si2_si1_si[label[i-2]][label[i-1]][part] + 1)/float(sum(self.p_si2_si1_si[label[i-2]][label[i-1]].values())+1)))
+                    interim += log(((self.p_wi_si[part][word]+self.c) / float(self.p_si[part]+self.c))*((self.p_si2_si1_si[label[i-2]][label[i-1]][part] + 1)/float(sum(self.p_si2_si1_si[label[i-2]][label[i-1]].values())+self.c)))
             return interim
         else:
             print("Unknown algo!")
@@ -110,6 +112,7 @@ class Solver:
         # print self.p_si1_si
         # print self.p_si2_si1_si
         # return self.p_s1, self.p_si1_si, self.p_wi_si
+        self.c = 1 / float(self.unique_words)
     
     # Functions for each algorithm. Right now this just returns nouns -- fix this!
     #
@@ -135,7 +138,7 @@ class Solver:
         for pos in self.pos:
             # sublist to the form of [position_no, value, path, pos], only with the words that appear
             # one added to both in the event it is a new word or a word being used in a new form.
-            viterbi_model.extend([[0,(self.p_s1[pos]+1)/float(self.unique_lines+1)*(self.p_wi_si[pos][sentence[0]]+1)/float(self.p_si[pos]+1), pos, pos]])
+            viterbi_model.extend([[0,(self.p_s1[pos]+self.c)/float(self.unique_lines+self.c)*(self.p_wi_si[pos][sentence[0]]+self.c)/float(self.p_si[pos]+self.c), pos, pos]])
         
         # Rest of sentence 
         if len(sentence) > 1:
@@ -144,7 +147,7 @@ class Solver:
                 for pos in self.pos:
                     viterbi_temp = []
                     for n, value, path, last_pos in viterbi_model:
-                        new_value = value*(self.p_si1_si[last_pos][pos]+1)/float(self.p_si[last_pos]+1)*(self.p_wi_si[pos][word]+1)/float(self.p_si[pos]+1)
+                        new_value = value*(self.p_si1_si[last_pos][pos]+self.c)/float(self.p_si[last_pos]+self.c)*(self.p_wi_si[pos][word]+self.c)/float(self.p_si[pos]+self.c)
                         viterbi_temp.extend([[n+1, new_value, path+" "+pos, pos]])
                     viterbi_max = sorted(viterbi_temp, key=itemgetter(1), reverse = True)[0]
                     viterbi_maxes.extend([viterbi_max])
