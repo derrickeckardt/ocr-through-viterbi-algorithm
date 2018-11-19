@@ -148,7 +148,7 @@ class Solver:
             gibbs_samples[i] = Counter()
         
         ns =[ "noun" ] * len(sentence)
-        for g in range(1000):
+        for g in range(100):
             for i in range(len(sentence)):
                 ratios =[]
                 running_total = 0.00
