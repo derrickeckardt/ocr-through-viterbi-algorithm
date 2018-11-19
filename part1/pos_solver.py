@@ -143,7 +143,10 @@ class Solver:
                 
     def complex_mcmc(self, sentence):
         # gibbs sampling
-        gibbs_samples = Counter()
+        gibbs_samples = {}
+        for i in range(len(sentence)):
+            gibbs_samples[i] = Counter()
+        
         ns =[ "noun" ] * len(sentence)
         for g in range(1000):
             for i in range(len(sentence)):
@@ -152,7 +155,13 @@ class Solver:
                 for pos in self.pos:
                     # First Five are for len(sentence) >= 3
                     pos_value = (self.p_wi_si[pos][sentence[i]] + self.c) / float(self.p_si[pos]+self.c)
-                    if i == 0 and i < len(sentence) - 2 and len(sentence) >2 :
+                    if i >= 2 and i < len(sentence) -2 and len(sentence) >2 :
+                        pos_value *= (
+                            (self.p_si2_si1_si[ns[i-2]][ns[i-1]][pos]+self.c) / float(sum(self.p_si2_si1_si[ns[i-2]][ns[i-1]].values())+self.c)*
+                            (self.p_si2_si1_si[ns[i-1]][pos][ns[i+1]]+self.c) / float(sum(self.p_si2_si1_si[ns[i-1]][pos].values())+self.c)*
+                            (self.p_si2_si1_si[pos][ns[i+1]][ns[i+2]]+self.c) / float(sum(self.p_si2_si1_si[pos][ns[i+1]].values())+self.c)
+                            )
+                    elif i == 0 and i < len(sentence) - 2 and len(sentence) >2 :
                         pos_value *= (
                             (self.p_s1[pos] + self.c) / float(self.unique_lines +self.c) * 
                             (self.p_si1_si[pos][ns[i+1]] + self.c) / float(self.p_si[pos] + self.c) *
@@ -163,12 +172,6 @@ class Solver:
                             (self.p_si1_si[ns[i-1]][pos] + self.c) / float(self.p_si[ns[i-1]] + self.c) *
                             (self.p_si2_si1_si[ns[i-1]][pos][ns[i+1]]+self.c) / float(sum(self.p_si2_si1_si[ns[i-1]][pos].values())+self.c)*
                             (self.p_si2_si1_si[pos][ns[i+1]][ns[i+1]]+self.c) / float(sum(self.p_si2_si1_si[pos][ns[i+1]].values())+self.c)
-                            )
-                    elif i >= 2 and i < len(sentence) -2 and len(sentence) >2 :
-                        pos_value *= (
-                            (self.p_si2_si1_si[ns[i-2]][ns[i-1]][pos]+self.c) / float(sum(self.p_si2_si1_si[ns[i-2]][ns[i-1]].values())+self.c)*
-                            (self.p_si2_si1_si[ns[i-1]][pos][ns[i+1]]+self.c) / float(sum(self.p_si2_si1_si[ns[i-1]][pos].values())+self.c)*
-                            (self.p_si2_si1_si[pos][ns[i+1]][ns[i+2]]+self.c) / float(sum(self.p_si2_si1_si[pos][ns[i+1]].values())+self.c)
                             )
                     elif i == len(sentence) - 2 and len(sentence) >2: # (second to last word)
                         pos_value *= (
@@ -195,10 +198,9 @@ class Solver:
     
                 # Flip the coin and assign new point of speech
                 ns[i] = self.coin_flip(ratios)
+                gibbs_samples[i][ns[i]] += 1
             
-            
-
-        return ns
+        return [gibbs_samples[i].most_common(1)[0][0] for i in range(len(sentence))]
 
     def hmm_viterbi(self, sentence):
         viterbi_model = []
