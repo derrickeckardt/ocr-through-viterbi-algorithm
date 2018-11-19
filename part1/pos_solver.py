@@ -29,6 +29,7 @@ from random import random
 # 1. Turn the counters into decimals values to make reading the formulas easier instead of calculating them each time.
 # 2. Make sure s1 is being used as the first one in simple, viterbi, and mcmc
 # 3. Cleanup gibbs sampling formula
+# 4. Enable Voting ability?
 
 class Solver:
     # Calculate the log of the posterior probability of a given sentence
@@ -148,7 +149,7 @@ class Solver:
             gibbs_samples[i] = Counter()
         
         ns =[ "noun" ] * len(sentence)
-        for g in range(1000):
+        for g in range(100):
             for i in range(len(sentence)):
                 ratios =[]
                 running_total = 0.00
