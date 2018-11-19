@@ -3,12 +3,28 @@
 # ./ocr.py : Perform optical character recognition, usage:
 #     ./ocr.py train-image-file.png train-text.txt test-image-file.png
 # 
-# Authors: (insert names here)
-# (based on skeleton code by D. Crandall, Oct 2018)
+###################################
+# CS B551 Fall 2018, Assignment #3
 #
+# Completed by:
+# Derrick Eckardt
+# derrick@iu.edu
+# (Based on skeleton code by D. Crandall)
+#
+#
+####
+# Put your report here!!
+####
 
 from PIL import Image, ImageDraw, ImageFont
+
+# This article helped figure out how to call different folder
+# https://www.reddit.com/r/learnpython/comments/3pzo9a/import_class_from_another_python_file/
 import sys
+sys.path.append('../part1/')
+
+from pos_scorer import Score    
+from pos_solver import *
 
 CHARACTER_WIDTH=14
 CHARACTER_HEIGHT=25
@@ -43,11 +59,22 @@ test_letters = load_letters(test_img_fname)
 # Each training letter is now stored as a list of characters, where black
 #  dots are represented by *'s and white dots are spaces. For example,
 #  here's what "a" looks like:
-print "\n".join([ r for r in train_letters['a'] ])
+# print "\n".join([ r for r in train_letters['p'] ])
+import pprint
+# print pprint.pprint(train_letters['P'])
+# print len(train_letters['p'])
 
 # Same with test letters. Here's what the third letter of the test data
 #  looks like:
-print "\n".join([ r for r in test_letters[2] ])
+# print "\n".join([ r for r in test_letters[2] ])
+# for each in test_letters:
+# print pprint.pprint(test_letters[2])
+print "".join(test_letters[0][6:8])
+print "".join(train_letters['T'][6:8])
 
-
+# for letter in test_letters:
+#     for train in train_letters:
+#         for row in letter:
+#             for square in row:
+#                 print square
 
