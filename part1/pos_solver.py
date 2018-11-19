@@ -17,6 +17,7 @@ from collections import defaultdict, Counter
 from operator import itemgetter
 from pprint import pprint
 from time import sleep
+from random import random
 
 
 # We've set up a suggested code structure, but feel free to change it. Just
@@ -25,8 +26,9 @@ from time import sleep
 #
 
 # Things to do to make it better
-# Turn the counters into decimals values to make reading the formulas easier instead of calculating them each time.
-# For viterbi, the smoothing favors x for foreign words for unknown words... 
+# 1. Turn the counters into decimals values to make reading the formulas easier instead of calculating them each time.
+# 2. Make sure s1 is being used as the first one in simple, viterbi, and mcmc
+# 3. Cleanup gibbs sampling formula
 
 class Solver:
     # Calculate the log of the posterior probability of a given sentence
@@ -49,10 +51,11 @@ class Solver:
                  self.p_si2_si1_si[pos][part] = Counter()
         self.c = 1 # used for smoothing, with training, will hange it to 1/ total words.
         # when i used one, it tended to favor x words which were unknown foreign words. which would then impact other words, causing others to be misclassified.
+        self.j = 1 # for gibbs
                  
     
     def posterior(self, model, sentence, label):
-        if model == "Simple":
+        if model == "Simple" or "Voting":
             interim = 0
             for word,part in zip(sentence,label):
                 # Added plus one to numerator and denominator to smooth for unknown words
@@ -113,6 +116,7 @@ class Solver:
         # print self.p_si2_si1_si
         # return self.p_s1, self.p_si1_si, self.p_wi_si
         self.c = 1 / float(self.unique_words)
+        
     
     # Functions for each algorithm. Right now this just returns nouns -- fix this!
     #
@@ -129,8 +133,72 @@ class Solver:
             simplified_model.extend([most_likely])
         return simplified_model 
 
+    def coin_flip(self, ratios):
+        flip = random()
+        check = 0
+        for pos, value in ratios:
+            check += value
+            if flip < check:
+                return pos
+                
     def complex_mcmc(self, sentence):
-        return [ "noun" ] * len(sentence)
+        # gibbs sampling
+        gibbs_samples = Counter()
+        ns =[ "noun" ] * len(sentence)
+        for g in range(1000):
+            for i in range(len(sentence)):
+                ratios =[]
+                running_total = 0.00
+                for pos in self.pos:
+                    # First Five are for len(sentence) >= 3
+                    pos_value = (self.p_wi_si[pos][sentence[i]] + self.c) / float(self.p_si[pos]+self.c)
+                    if i == 0 and i < len(sentence) - 2 and len(sentence) >2 :
+                        pos_value *= (
+                            (self.p_s1[pos] + self.c) / float(self.unique_lines +self.c) * 
+                            (self.p_si1_si[pos][ns[i+1]] + self.c) / float(self.p_si[pos] + self.c) *
+                            (self.p_si2_si1_si[pos][ns[i+1]][ns[i+2]]+self.c) / float(sum(self.p_si2_si1_si[pos][ns[i+1]].values())+self.c)
+                            )
+                    elif i == 1 and i < len(sentence) - 2 and len(sentence) >2:
+                        pos_value *= (
+                            (self.p_si1_si[ns[i-1]][pos] + self.c) / float(self.p_si[ns[i-1]] + self.c) *
+                            (self.p_si2_si1_si[ns[i-1]][pos][ns[i+1]]+self.c) / float(sum(self.p_si2_si1_si[ns[i-1]][pos].values())+self.c)*
+                            (self.p_si2_si1_si[pos][ns[i+1]][ns[i+1]]+self.c) / float(sum(self.p_si2_si1_si[pos][ns[i+1]].values())+self.c)
+                            )
+                    elif i >= 2 and i < len(sentence) -2 and len(sentence) >2 :
+                        pos_value *= (
+                            (self.p_si2_si1_si[ns[i-2]][ns[i-1]][pos]+self.c) / float(sum(self.p_si2_si1_si[ns[i-2]][ns[i-1]].values())+self.c)*
+                            (self.p_si2_si1_si[ns[i-1]][pos][ns[i+1]]+self.c) / float(sum(self.p_si2_si1_si[ns[i-1]][pos].values())+self.c)*
+                            (self.p_si2_si1_si[pos][ns[i+1]][ns[i+2]]+self.c) / float(sum(self.p_si2_si1_si[pos][ns[i+1]].values())+self.c)
+                            )
+                    elif i == len(sentence) - 2 and len(sentence) >2: # (second to last word)
+                        pos_value *= (
+                            (self.p_si2_si1_si[ns[i-2]][ns[i-1]][pos]+self.c) / float(sum(self.p_si2_si1_si[ns[i-2]][ns[i-1]].values())+self.c)*
+                            (self.p_si2_si1_si[ns[i-1]][pos][ns[i+1]]+self.c) / float(sum(self.p_si2_si1_si[ns[i-1]][pos].values())+self.c)
+                            )
+                    elif i == len(sentence) - 1 and len(sentence) >2: # (last word)
+                        pos_value *= (
+                            (self.p_si2_si1_si[ns[i-2]][ns[i-1]][pos]+self.c) / float(sum(self.p_si2_si1_si[ns[i-2]][ns[i-1]].values())+self.c)
+                            )
+                    elif i == 0 and len(sentence) == 2:
+                        pos_value *= (
+                            (self.p_s1[pos] + self.c) / float(self.unique_lines +self.c) * 
+                            (self.p_si1_si[pos][ns[i+1]] + self.c) / float(self.p_si[pos] + self.c)
+                            )
+                    elif i == 1 and len(sentence) == 2: # last word
+                        pos_value *= (
+                            (self.p_si1_si[ns[i-1]][pos] + self.c) / float(self.p_si[ns[i-1]] + self.c)
+                            )
+                    # For one word sentences, it's already the part that was included                        # inentionally used this one, since if there is a one-word sentence, i figured it could be anything.  more of a quirk of the data than anything.
+                    ratios.extend([[pos, pos_value]])
+                    running_total += pos_value
+                ratios = sorted([[each, value/running_total] for each, value in ratios], key=itemgetter(1), reverse = True)
+    
+                # Flip the coin and assign new point of speech
+                ns[i] = self.coin_flip(ratios)
+            
+            
+
+        return ns
 
     def hmm_viterbi(self, sentence):
         viterbi_model = []
@@ -155,13 +223,16 @@ class Solver:
 
         # backtrack now
         likely_path = sorted(viterbi_model,key=itemgetter(1), reverse=True)[0][2].split()
-
-        # print len(viterbi_temp)
-        # print sorted(viterbi_maxes, key=itemgetter(3), reverse = True)
-        # print viterbi_max
-
-    
+ 
         return likely_path
+        
+    def voting(self,sentence):
+        votes = [self.simplified(sentence), self.complex_mcmc(sentence), self.hmm_viterbi(sentence)]
+        output_votes = []
+        for i in range(len(votes[0])):
+            vote_counter = Counter([votes[j][i] for j in range(len(votes))])
+            output_votes.extend([vote_counter.most_common(1)[0][0]])
+        return output_votes
     
     # This solve() method is called by label.py, so you should keep the interface the
     #  same, but you can change the code itself. 
@@ -175,6 +246,8 @@ class Solver:
             return self.complex_mcmc(sentence)
         elif model == "HMM":
             return self.hmm_viterbi(sentence)
+        elif model == "Voting":
+            return self.voting(sentence)
         else:
             print("Unknown algo!")
 
