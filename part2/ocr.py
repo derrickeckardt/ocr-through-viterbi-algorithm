@@ -84,6 +84,7 @@ for line in training_text:
         pL_count[letter] += 1
 
 total_char = float(sum(pL_count.values()))
+# print pL_count
 
 # For unknown characters    
 smoother = 1 / total_char
