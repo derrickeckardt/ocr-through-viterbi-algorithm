@@ -122,10 +122,10 @@ def simple(train_letters, test_letters):
         t = 0.05# tuning parameter, as suggested by instruction and @590 in Piazza
         for train in train_letters:
             train_string = "".join(train_letters[train])
-            m = sum([1.0 if train_dot == test_dot and train_dot == "*" else 0.05 if train_dot == test_dot and train_dot == " " else 0.0 for train_dot, test_dot in zip(train_string, test_string)]) # dots in common, as suggested by instruction and @590 in Piazza
+            m = sum([10.0 if train_dot == test_dot and train_dot == "*" else 1.25 if train_dot == test_dot and train_dot == " " else 0.0 for train_dot, test_dot in zip(train_string, test_string)]) # dots in common, as suggested by instruction and @590 in Piazza
             N = float(len(test_string)) #float(sum([1 if train_dot == "*" else 0 for train_dot in train_string]))  # Number of dots, as suggested by instruction and @590 in Piazza
             # pO_of_L = ((1-t)**m) * (t**(N-m))
-            pO_of_L = m / (N)
+            pO_of_L = m / (N*10.0)
             
             # print pO_of_L
             # pO_of_L = sum([1 if train_dot == test_dot else 0 for train_dot, test_dot in zip(train_string, test_string)]) / float(len(train_string))
@@ -142,7 +142,7 @@ def viterbi(train_letters,test_letters):
 
     # first letter in image
     test_string = "".join(test_letters[0])
-    t = 0.50 # tuning parameter, as suggested by instruction and @590 in Piazza
+    t = 0.20 # tuning parameter, as suggested by instruction and @590 and @615 in Piazza
     # N = float(len(test_string)) # Number of dots, as suggested by instruction and @590 in Piazza
     viterbi_temp = []
     total_pO_of_L = 0
@@ -150,18 +150,18 @@ def viterbi(train_letters,test_letters):
         # sublist to the form of [position_no, value, path, pos], only with the words that appear
         # one added to both in the event it is a new word or a word being used in a new form.
         train_string = "".join(train_letters[train])
-        m = sum([10.0 if train_dot == test_dot and train_dot == "*" else 0.5if train_dot == test_dot and train_dot == " " else 0.0 for train_dot, test_dot in zip(train_string, test_string)])# dots in common, as suggested by instruction and @590 in Piazza
+        m = sum([10.0 if train_dot == test_dot and train_dot == "*" else 1.25 if train_dot == test_dot and train_dot == " " else 0.0 for train_dot, test_dot in zip(train_string, test_string)])# dots in common, as suggested by instruction and @590 in Piazza
         j = sum([1.0 if train_dot == test_dot else 0.0 for train_dot, test_dot in zip(train_string, test_string)]) # dots in common, as suggested by instruction and @590 in Piazza
         N = float(len(test_string)) #float(sum([1 if train_dot == "*" else 0 for train_dot in train_string]))  # Number of dots, as suggested by instruction and @590 in Piazza
-        # pO_of_L = (m / (N))**(N-j)
-        pO_of_L = ((1-t)**j) * (t**(N-j))
+        pO_of_L = (m / (N*10.0))#**(N-j)
+        # pO_of_L = ((1-t)**j) * (t**(N-j))
         
         # print j, N - j
         # pO_of_L = ((j / N) ** j) * (((N-j)/N))**(N-j)
         
-        # print pO_of_L, log(pO_of_L)
+        # print pO_of_L, log(pO_of_L) *175
         
-        viterbi_model.extend([[0,log(pO_of_L), train, train]])  # + log((pL1_count[train]+pL1_smoother)/float(total_pL1+pL1_smoother))
+        viterbi_model.extend([[0,222*log(pO_of_L), train, train]])  # + log((pL1_count[train]+pL1_smoother)/float(total_pL1+pL1_smoother))
     # print sorted(viterbi_model,key=itemgetter(1), reverse=True)
 
     # Rest of text
@@ -175,23 +175,23 @@ def viterbi(train_letters,test_letters):
             # one added to both in the event it is a new word or a word being used in a new form.
             viterbi_temp = []
             train_string = "".join(train_letters[train])
-            m = sum([10.0 if train_dot == test_dot and train_dot == "*" else 0.5 if train_dot == test_dot and train_dot == " " else 0.0 for train_dot, test_dot in zip(train_string, test_string)]) # dots in common, as suggested by instruction and @590 in Piazza
+            m = sum([10.0 if train_dot == test_dot and train_dot == "*" else 1.25 if train_dot == test_dot and train_dot == " " else 0.0 for train_dot, test_dot in zip(train_string, test_string)]) # dots in common, as suggested by instruction and @590 in Piazza
             j = sum([1.0 if train_dot == test_dot else 0.0 for train_dot, test_dot in zip(train_string, test_string)]) # dots in common, as suggested by instruction and @590 in Piazza
 
             N = float(len(test_string)) #float(sum([1 if train_dot == "*" else 0 for train_dot in train_string]))  # Number of dots, as suggested by instruction and @590 in Piazza
             # print m," ", N, " ", ((1-t)**m) * (t**(N-m)), " ", log(((1-t)**m) * (t**(N-m)))
             # pO_of_L = ((1-t)**m) * (t**(N-m)) #m / (N*10.0)
-            # pO_of_L = (m / (N))**(N-j)
+            pO_of_L = (m / (N*10.0))#**(N-j)
             # pO_of_L = ((1-t)**m) * (t**(N-j))
             # print j, N - j
             # pO_of_L = ((j / N) ** j) * (((N-j)/N))**(N-j)
             # print pO_of_L, log(pO_of_L)
-            pO_of_L = ((1-t)**j) * (t**(N-j))
+            # pO_of_L = ((1-t)**j) * (t**(N-j))
 
 
             for n, value, path, last_letter in viterbi_model:
                 new_value = log((pL2_pL1_count[last_letter][train]+smoother) / float(sum(pL2_pL1_count[last_letter].values())+(total_char*smoother))) # *
-                viterbi_temp.extend([[n+1, log(pO_of_L)+value+new_value, path+train, train]])
+                viterbi_temp.extend([[n+1, 222*log(pO_of_L)+value+new_value, path+train, train]])
             viterbi_max = sorted(viterbi_temp, key=itemgetter(1), reverse = True)[0]
             viterbi_maxes.extend([viterbi_max])
         viterbi_model = viterbi_maxes * 1
