@@ -82,12 +82,15 @@ training_text = read_data(train_txt_fname)
 pL_count = Counter()
 pL1_count = Counter()
 pL2_pL1_count = {}
+for letter in train_letters:
+    pL2_pL1_count[letter] = Counter()
+    
 for line in training_text:
     last_letter = ""
     for letter in line:
         pL_count[letter] += 1
         if last_letter != "":
-            if last_letter in pL2_pL1_count.keys() :
+            if last_letter in pL2_pL1_count.keys():
                 pL2_pL1_count[last_letter][letter] += 1
             else:
                 pL2_pL1_count[last_letter] = Counter()
@@ -97,10 +100,11 @@ for line in training_text:
 
 total_char = float(sum(pL_count.values()))
 total_pL1 = float(sum(pL1_count.values()))
-print pL1_count
+# print pL1_count
 
 # For unknown characters    
 smoother = 1 / total_char
+pL1_smoother = 1 / total_pL1
 
 
 # Simple method
@@ -130,12 +134,11 @@ def simple(train_letters, test_letters):
     return simple_text
 
 def viterbi(train_letters,test_letters):
-    viterbi_text = ""
     viterbi_model = []
 
     # first letter in image
     test_string = "".join(test_letters[0])
-    t = 0.05 # tuning parameter, as suggested by instruction and @590 in Piazza
+    t = 0.1 # tuning parameter, as suggested by instruction and @590 in Piazza
     N = float(len(test_string)) # Number of dots, as suggested by instruction and @590 in Piazza
     for train in train_letters:
         # sublist to the form of [position_no, value, path, pos], only with the words that appear
@@ -143,30 +146,35 @@ def viterbi(train_letters,test_letters):
         train_string = "".join(train_letters[train])
         m = sum([1 if train_dot == test_dot else 0 for train_dot, test_dot in zip(train_string, test_string)]) # dots in common, as suggested by instruction and @590 in Piazza
         pO_of_L = ((1-t)**m) * (t**(N-m))
-
+        viterbi_model.extend([[0,(pL1_count[train]+pL1_smoother)/float(total_pL1+pL1_smoother)*pO_of_L, train, train]])
 
     # Rest of text
     for test in test_letters[1:]:
-        g = 1
-    #     viterbi_maxes =[]
-    #     test_string = "".join(test)
-    #     for train in train_letters:
-    #         viterbi_temp = []
-    #         train_string = "".join(train_letters[train])
-    #         for n, value, path, last_pos in viterbi_model:
-    #             new_value = value*(self.p_si1_si[last_pos][pos]+self.c)/float(self.p_si[last_pos]+self.c)*(self.p_wi_si[pos][word]+self.c)/float(self.p_si[pos]+self.c)
-    #             viterbi_temp.extend([[n+1, new_value, path+" "+pos, pos]])
-    #         viterbi_max = sorted(viterbi_temp, key=itemgetter(1), reverse = True)[0]
-    #         viterbi_maxes.extend([viterbi_max])
-    #     viterbi_model = viterbi_maxes * 1
+        test_string = "".join(test)
+        viterbi_maxes =[]
+        t = 0.1 # tuning parameter, as suggested by instruction and @590 in Piazza
+        N = float(len(test_string)) # Number of dots, as suggested by instruction and @590 in Piazza
+        for train in train_letters:
+            # sublist to the form of [position_no, value, path, pos], only with the words that appear
+            # one added to both in the event it is a new word or a word being used in a new form.
+            train_string = "".join(train_letters[train])
+            m = sum([1 if train_dot == test_dot else 0 for train_dot, test_dot in zip(train_string, test_string)]) # dots in common, as suggested by instruction and @590 in Piazza
+            pO_of_L = ((1-t)**m) * (t**(N-m))
+            viterbi_temp = []
+            train_string = "".join(train_letters[train])
+            for n, value, path, last_letter in viterbi_model:
+                new_value = value*(pL2_pL1_count[last_letter][train]+smoother)/float(sum(pL2_pL1_count[last_letter].values())+smoother)*pO_of_L
+                viterbi_temp.extend([[n+1, new_value, path+train, train]])
+            viterbi_max = sorted(viterbi_temp, key=itemgetter(1), reverse = True)[0]
+            viterbi_maxes.extend([viterbi_max])
+        viterbi_model = viterbi_maxes * 1
 
-    # # backtrack now
-    # likely_path = sorted(viterbi_model,key=itemgetter(1), reverse=True)[0][2].split()
-
+    print sorted(viterbi_model,key=itemgetter(1), reverse=True)
+    # backtrack now
+    likely_path = sorted(viterbi_model,key=itemgetter(1), reverse=True)[0][2]
+    
     # return likely_path
-    print viterbi_model
-
-    return viterbi_text
+    return likely_path
 
 print "Simple:  "+simple(train_letters, test_letters)
 print "Viterbi: "+viterbi(train_letters, test_letters)
