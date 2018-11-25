@@ -207,3 +207,4 @@ def viterbi(train_letters,test_letters):
 print "Simple:  "+simple(train_letters, test_letters)
 print "Viterbi: "+viterbi(train_letters, test_letters)
 print "Final Answer:"
+print viterbi(train_letters, test_letters)
