@@ -6,6 +6,7 @@
 # derrick@iu.edu
 # (Based on skeleton code by D. Crandall)
 #
+# Completed on November 25, 2018
 #
 ####
 # Put your report here!!
@@ -15,20 +16,11 @@ import random
 from math import log
 from collections import defaultdict, Counter
 from operator import itemgetter
-from pprint import pprint
-from time import sleep
 from random import random
-
-
-# We've set up a suggested code structure, but feel free to change it. Just
-# make sure your code still works with the label.py and pos_scorer.py code
-# that we've supplied.
-#
 
 # Things to do to make it better
 # 1. Turn the counters into decimals values to make reading the formulas easier instead of calculating them each time.
 # 2. Make sure s1 is being used as the first one in simple, viterbi, and mcmc
-# 3. Cleanup gibbs sampling formula
 # 4. Enable Voting ability?
 
 class Solver:
@@ -50,8 +42,8 @@ class Solver:
              self.p_si2_si1_si[pos] = {}
              for part in self.pos:
                  self.p_si2_si1_si[pos][part] = Counter()
-        self.c = 1 # used for smoothing, with training, will hange it to 1/ total words.
-        # when i used one, it tended to favor x words which were unknown foreign words. which would then impact other words, causing others to be misclassified.
+        self.c = 1 # used for smoothing, with training, will change it to 1/ total words.
+        # when I used one, it tended to favor x words which were unknown foreign words. which would then impact other words, causing others to be misclassified.
         self.j = 1 # for gibbs
                  
     
@@ -192,7 +184,8 @@ class Solver:
                         pos_value *= (
                             (self.p_si1_si[ns[i-1]][pos] + self.c) / float(self.p_si[ns[i-1]] + self.c)
                             )
-                    # For one word sentences, it's already the part that was included                        # inentionally used this one, since if there is a one-word sentence, i figured it could be anything.  more of a quirk of the data than anything.
+                    # For one word sentences, it's already the part that was included                        
+                    # inetntionally used this one, since if there is a one-word sentence, i figured it could be anything.  more of a quirk of the data than anything.
                     ratios.extend([[pos, pos_value]])
                     running_total += pos_value
                 ratios = sorted([[each, value/running_total] for each, value in ratios], key=itemgetter(1), reverse = True)

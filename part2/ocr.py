@@ -11,6 +11,7 @@
 # derrick@iu.edu
 # (Based on skeleton code by D. Crandall)
 #
+# Completed on November 25, 2018
 #
 ####
 # Put your report here!!
@@ -130,7 +131,7 @@ def simple(train_letters, test_letters):
             # print pO_of_L
             # pO_of_L = sum([1 if train_dot == test_dot else 0 for train_dot, test_dot in zip(train_string, test_string)]) / float(len(train_string))
             pL = (pL_count[train] + smoother) / (total_char + smoother)
-            test_scores.extend([[train, pO_of_L]]) #pL
+            test_scores.extend([[train, log(pO_of_L)+log(pL)]]) #pL
         # print sorted(test_scores, key=itemgetter(1), reverse = True)
         simple_text += sorted(test_scores, key=itemgetter(1), reverse = True)[0][0]
 
