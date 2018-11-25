@@ -9,8 +9,32 @@
 # Completed on November 25, 2018
 #
 ####
-# Put your report here!!
+# Part 1 - Part of Speech Tagging
 ####
+#
+#
+#
+# Calculating Emissions
+#
+# Using Viterbi
+#
+# MCMC iterations - One of the most 
+#
+# Ultimately, I went with 50 iterations, while I found almost no difference at
+# 25 Gibbs samples.  I ran it all the way upto 3000 iterations, and got nearly 
+# identical results.
+
+
+
+
+
+
+
+
+
+
+
+
 
 import random
 from math import log
@@ -141,7 +165,7 @@ class Solver:
             gibbs_samples[i] = Counter()
         
         ns =[ "noun" ] * len(sentence)
-        for g in range(25):
+        for g in range(50):
             for i in range(len(sentence)):
                 ratios =[]
                 running_total = 0.00
