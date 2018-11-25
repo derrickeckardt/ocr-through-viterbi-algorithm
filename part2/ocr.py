@@ -59,10 +59,10 @@ def read_data(fname):
         example = ""
         for word, state in zip(line.split()[0::2], line.split()[1::2]):
             if state != ".":
-                example += " "+ word
+                example += word + " "
             else:
-                example += word
-        exemplars.extend([(example+" ")])
+                example = example[:-1] + word + " "
+        exemplars.extend([(example+"")])
     return exemplars
 
 
@@ -72,19 +72,32 @@ def read_data(fname):
 train_letters = load_training_letters(train_img_fname)
 test_letters = load_letters(test_img_fname)
 training_text = read_data(train_txt_fname)
+# print training_text
 
 ## Below is just some sample code to show you how the functions above work. 
 # You can delete them and put your own code here!
 
 # Train letters
-# p(l), p(l2 | l1)
+# p(l), p(l2 | l1), p(L1)
 pL_count = Counter()
+pL1_count = Counter()
+pL2_pL1_count = {}
 for line in training_text:
+    last_letter = ""
     for letter in line:
         pL_count[letter] += 1
+        if last_letter != "":
+            if last_letter in pL2_pL1_count.keys() :
+                pL2_pL1_count[last_letter][letter] += 1
+            else:
+                pL2_pL1_count[last_letter] = Counter()
+                pL2_pL1_count[last_letter][letter] += 1
+        last_letter = letter
+    pL1_count[line[0]] += 1
 
 total_char = float(sum(pL_count.values()))
-# print pL_count
+total_pL1 = float(sum(pL1_count.values()))
+print pL1_count
 
 # For unknown characters    
 smoother = 1 / total_char
@@ -94,17 +107,19 @@ smoother = 1 / total_char
 # Compare each test letter to the train letter.  The one with the highest percentage of similar
 # points is the winner
 def simple(train_letters, test_letters):
-    # cycle through each test letter
     simple_text = ""
-    for test in test_letters:
+    # cycle through each test lette
+    
+    
+    for test in test_letters[:]:
         test_scores = []
         # Sort through each letter in the train set, a
         test_string = "".join(test)
+        t = 0.05 # tuning parameter, as suggested by instruction and @590 in Piazza
+        N = float(len(test_string)) # Number of dots, as suggested by instruction and @590 in Piazza
         for train in train_letters:
             train_string = "".join(train_letters[train])
-            t = 0.3 # tuning parameter
-            N = float(len(train_string)) # Number of bits
-            m = sum([1 if train_dot == test_dot else 0 for train_dot, test_dot in zip(train_string, test_string)]) # bits in common
+            m = sum([1 if train_dot == test_dot else 0 for train_dot, test_dot in zip(train_string, test_string)]) # dots in common, as suggested by instruction and @590 in Piazza
             pO_of_L = ((1-t)**m) * (t**(N-m))
             # pO_of_L = sum([1 if train_dot == test_dot else 0 for train_dot, test_dot in zip(train_string, test_string)]) / float(len(train_string))
             pL = (pL_count[train] + smoother) / (total_char + smoother)
@@ -114,5 +129,46 @@ def simple(train_letters, test_letters):
 
     return simple_text
 
-print "Simple: "+simple(train_letters, test_letters)
+def viterbi(train_letters,test_letters):
+    viterbi_text = ""
+    viterbi_model = []
 
+    # first letter in image
+    test_string = "".join(test_letters[0])
+    t = 0.05 # tuning parameter, as suggested by instruction and @590 in Piazza
+    N = float(len(test_string)) # Number of dots, as suggested by instruction and @590 in Piazza
+    for train in train_letters:
+        # sublist to the form of [position_no, value, path, pos], only with the words that appear
+        # one added to both in the event it is a new word or a word being used in a new form.
+        train_string = "".join(train_letters[train])
+        m = sum([1 if train_dot == test_dot else 0 for train_dot, test_dot in zip(train_string, test_string)]) # dots in common, as suggested by instruction and @590 in Piazza
+        pO_of_L = ((1-t)**m) * (t**(N-m))
+
+
+    # Rest of text
+    for test in test_letters[1:]:
+        g = 1
+    #     viterbi_maxes =[]
+    #     test_string = "".join(test)
+    #     for train in train_letters:
+    #         viterbi_temp = []
+    #         train_string = "".join(train_letters[train])
+    #         for n, value, path, last_pos in viterbi_model:
+    #             new_value = value*(self.p_si1_si[last_pos][pos]+self.c)/float(self.p_si[last_pos]+self.c)*(self.p_wi_si[pos][word]+self.c)/float(self.p_si[pos]+self.c)
+    #             viterbi_temp.extend([[n+1, new_value, path+" "+pos, pos]])
+    #         viterbi_max = sorted(viterbi_temp, key=itemgetter(1), reverse = True)[0]
+    #         viterbi_maxes.extend([viterbi_max])
+    #     viterbi_model = viterbi_maxes * 1
+
+    # # backtrack now
+    # likely_path = sorted(viterbi_model,key=itemgetter(1), reverse=True)[0][2].split()
+
+    # return likely_path
+    print viterbi_model
+
+    return viterbi_text
+
+print "Simple:  "+simple(train_letters, test_letters)
+print "Viterbi: "+viterbi(train_letters, test_letters)
+print "Final Answer:"
+print 
