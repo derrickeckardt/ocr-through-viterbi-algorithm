@@ -213,7 +213,7 @@ class Solver:
         
         # Rest of sentence 
         if len(sentence) > 1:
-            for word in sentence[1:]:  # Remove 2 later on once its running
+            for word in sentence[1:]:
                 viterbi_maxes =[]
                 for pos in self.pos:
                     viterbi_temp = []
