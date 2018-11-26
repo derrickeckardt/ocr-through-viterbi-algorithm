@@ -24,16 +24,47 @@
 # 25 Gibbs samples.  I ran it all the way upto 3000 iterations, and got nearly 
 # identical results.
 
+# Gibbs = 25
+# ==> So far scored 2000 sentences with 29442 words.
+#                   Words correct:     Sentences correct: 
+#   0. Ground truth:      100.00%              100.00%
+#          1. Simple:       93.92%               47.45%
+#             2. HMM:       94.36%               50.75%
+#         3. Complex:       94.48%               51.15%
 
+# Gibbs = 50
+# ==> So far scored 2000 sentences with 29442 words.
+#                   Words correct:     Sentences correct: 
+#   0. Ground truth:      100.00%              100.00%
+#          1. Simple:       93.92%               47.45%
+#             2. HMM:       94.36%               50.75%
+#         3. Complex:       94.55%               51.45%
 
+# Gibbs = 100
+# ==> So far scored 2000 sentences with 29442 words.
+#                   Words correct:     Sentences correct: 
+#   0. Ground truth:      100.00%              100.00%
+#          1. Simple:       93.92%               47.45%
+#             2. HMM:       94.36%               50.75%
+#         3. Complex:       94.65%               52.05%
 
+# Gibbs = 500
+# ==> So far scored 2000 sentences with 29442 words.
+#                   Words correct:     Sentences correct: 
+#   0. Ground truth:      100.00%              100.00%
+#          1. Simple:       93.92%               47.45%
+#             2. HMM:       94.36%               50.75%
+#         3. Complex:       94.63%               52.15%
 
+#
+# Gibbs = 1000
 
-
-
-
-
-
+# ==> So far scored 2000 sentences with 29442 words.
+#                   Words correct:     Sentences correct: 
+#   0. Ground truth:      100.00%              100.00%
+#          1. Simple:       93.92%               47.45%
+#             2. HMM:       94.36%               50.75%
+#         3. Complex:       94.67%               52.25%
 
 
 import random
@@ -165,7 +196,7 @@ class Solver:
             gibbs_samples[i] = Counter()
         
         ns =[ "noun" ] * len(sentence)
-        for g in range(50):
+        for g in range(1000):
             for i in range(len(sentence)):
                 ratios =[]
                 running_total = 0.00

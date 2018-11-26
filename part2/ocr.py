@@ -123,7 +123,7 @@ def simple(train_letters, test_letters):
         t = 0.05# tuning parameter, as suggested by instruction and @590 in Piazza
         for train in train_letters:
             train_string = "".join(train_letters[train])
-            m = sum([10.0 if train_dot == test_dot and train_dot == "*" else 1.25 if train_dot == test_dot and train_dot == " " else 0.0 for train_dot, test_dot in zip(train_string, test_string)]) # dots in common, as suggested by instruction and @590 in Piazza
+            m = sum([1.0 if train_dot == test_dot and train_dot == "*" else 0.05 if train_dot == test_dot and train_dot == " " else 0.0 for train_dot, test_dot in zip(train_string, test_string)]) # dots in common, as suggested by instruction and @590 in Piazza
             N = float(len(test_string)) #float(sum([1 if train_dot == "*" else 0 for train_dot in train_string]))  # Number of dots, as suggested by instruction and @590 in Piazza
             # pO_of_L = ((1-t)**m) * (t**(N-m))
             pO_of_L = m / (N*10.0)
@@ -131,7 +131,7 @@ def simple(train_letters, test_letters):
             # print pO_of_L
             # pO_of_L = sum([1 if train_dot == test_dot else 0 for train_dot, test_dot in zip(train_string, test_string)]) / float(len(train_string))
             pL = (pL_count[train] + smoother) / (total_char + smoother)
-            test_scores.extend([[train, log(pO_of_L)+log(pL)]]) #pL
+            test_scores.extend([[train, log(pO_of_L)]]) #pL
         # print sorted(test_scores, key=itemgetter(1), reverse = True)
         simple_text += sorted(test_scores, key=itemgetter(1), reverse = True)[0][0]
 
