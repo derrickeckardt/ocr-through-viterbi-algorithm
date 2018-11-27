@@ -48,6 +48,14 @@
 #             2. HMM:       94.36%               50.75%
 #         3. Complex:       94.65%               52.05%
 
+# Gibbs = 100 with burn-in
+#==> So far scored 2000 sentences with 29442 words.
+#                   Words correct:     Sentences correct: 
+#   0. Ground truth:      100.00%              100.00%
+#         1. Simple:       93.92%               47.45%
+#            2. HMM:       94.36%               50.75%
+#        3. Complex:       94.67%               52.10%
+
 # Gibbs = 500
 # ==> So far scored 2000 sentences with 29442 words.
 #                   Words correct:     Sentences correct: 
@@ -55,6 +63,14 @@
 #          1. Simple:       93.92%               47.45%
 #             2. HMM:       94.36%               50.75%
 #         3. Complex:       94.63%               52.15%
+
+# Gibbs 500 with 250 burned in
+#==> So far scored 2000 sentences with 29442 words.
+#                   Words correct:     Sentences correct: 
+#   0. Ground truth:      100.00%              100.00%
+#         1. Simple:       93.92%               47.45%
+#            2. HMM:       94.36%               50.75%
+#        3. Complex:       94.68%               52.35%
 
 #
 # Gibbs = 1000
@@ -65,6 +81,23 @@
 #          1. Simple:       93.92%               47.45%
 #             2. HMM:       94.36%               50.75%
 #         3. Complex:       94.67%               52.25%
+
+# Gibbs = 2000
+
+# ==> So far scored 2000 sentences with 29442 words.
+#                   Words correct:     Sentences correct: 
+#   0. Ground truth:      100.00%              100.00%
+#         1. Simple:       93.92%               47.45%
+#            2. HMM:       94.36%               50.75%
+#        3. Complex:       94.65%               52.30%
+
+# Gibbs = 1000 with 500 burn-in
+#==> So far scored 2000 sentences with 29442 words.
+#                   Words correct:     Sentences correct: 
+#   0. Ground truth:      100.00%              100.00%
+#         1. Simple:       93.92%               47.45%
+#            2. HMM:       94.36%               50.75%
+#        3. Complex:       94.67%               52.10%
 
 
 import random
@@ -196,7 +229,7 @@ class Solver:
             gibbs_samples[i] = Counter()
         
         ns =[ "noun" ] * len(sentence)
-        for g in range(1000):
+        for g in range(100):
             for i in range(len(sentence)):
                 ratios =[]
                 running_total = 0.00
@@ -244,10 +277,12 @@ class Solver:
                     ratios.extend([[pos, pos_value]])
                     running_total += pos_value
                 ratios = sorted([[each, value/running_total] for each, value in ratios], key=itemgetter(1), reverse = True)
-    
+
                 # Flip the coin and assign new point of speech
                 ns[i] = self.coin_flip(ratios)
-                gibbs_samples[i][ns[i]] += 1
+
+                if g >= 50:
+                    gibbs_samples[i][ns[i]] += 1
             
         return [gibbs_samples[i].most_common(1)[0][0] for i in range(len(sentence))]
 
