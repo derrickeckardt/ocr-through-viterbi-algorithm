@@ -11,93 +11,47 @@
 ####
 # Part 1 - Part of Speech Tagging
 ####
+# Overall, here are the results of the various means of doing part of speech
+# tagging.  One thing to note is that I ran the MCMC at various amounts of Gibbs
+# samples, which are noted in the last column.  In addition, some of those were
+# set to ignore a certain amount of gibbs samples (aka burn-in) for determining
+# the answer.
 #
-#
-#
+# ==> So far scored 2000 sentences with 29442 words.
+#                   Words correct:     Sentences correct: 
+#   0. Ground truth:      100.00%              100.00%
+#          1. Simple:       93.92%               47.45%
+#             2. HMM:       94.36%               50.75%
+#         3. Complex:       93.50%               46.75%  Gibbs = 3
+#         3. Complex:       94.02%               48.35%  Gibbs = 5
+#         3. Complex:       94.52%               51.15%  Gibbs = 10
+#         3. Complex:       94.48%               51.15%  Gibbs = 25
+#         3. Complex:       94.55%               51.45%  Gibbs = 50
+#         3. Complex:       94.65%               52.05%  Gibbs = 100 (current)
+#         3. Complex:       94.67%               52.10%  Gibbs = 100, burn =50
+#         3. Complex:       94.63%               52.15%  Gibbs = 500
+#         3. Complex:       94.68%               52.35%  Gibbs = 500, burn = 250
+#         3. Complex:       94.67%               52.25%  Gibbs = 1000
+#         3. Complex:       94.67%               52.30%  Gibbs = 1000 burn = 500
+#         3. Complex:       94.65%               52.30%  Gibbs = 2000
+
+# Ultimately, I went with 100 Gibbs samples as my default MCMC setting, since at
+# that level it looked like there was no real improvement in performance.  As
+# computer scientists, we have to trade-off performance against resources. To get the 
+, while I found almost no difference at
+# 25 Gibbs samples.  I ran it all the way upto 3000 iterations, and got nearly 
+# identical results.
+
+# 
 # Calculating Emissions
 #
 # Using Viterbi
 #
 # MCMC iterations - One of the most 
 #
-# Ultimately, I went with 50 iterations, while I found almost no difference at
-# 25 Gibbs samples.  I ran it all the way upto 3000 iterations, and got nearly 
-# identical results.
 
-# Gibbs = 25
-# ==> So far scored 2000 sentences with 29442 words.
-#                   Words correct:     Sentences correct: 
-#   0. Ground truth:      100.00%              100.00%
-#          1. Simple:       93.92%               47.45%
-#             2. HMM:       94.36%               50.75%
-#         3. Complex:       94.48%               51.15%
-
-# Gibbs = 50
-# ==> So far scored 2000 sentences with 29442 words.
-#                   Words correct:     Sentences correct: 
-#   0. Ground truth:      100.00%              100.00%
-#          1. Simple:       93.92%               47.45%
-#             2. HMM:       94.36%               50.75%
-#         3. Complex:       94.55%               51.45%
-
-# Gibbs = 100
-# ==> So far scored 2000 sentences with 29442 words.
-#                   Words correct:     Sentences correct: 
-#   0. Ground truth:      100.00%              100.00%
-#          1. Simple:       93.92%               47.45%
-#             2. HMM:       94.36%               50.75%
-#         3. Complex:       94.65%               52.05%
-
-# Gibbs = 100 with burn-in
-#==> So far scored 2000 sentences with 29442 words.
-#                   Words correct:     Sentences correct: 
-#   0. Ground truth:      100.00%              100.00%
-#         1. Simple:       93.92%               47.45%
-#            2. HMM:       94.36%               50.75%
-#        3. Complex:       94.67%               52.10%
-
-# Gibbs = 500
-# ==> So far scored 2000 sentences with 29442 words.
-#                   Words correct:     Sentences correct: 
-#   0. Ground truth:      100.00%              100.00%
-#          1. Simple:       93.92%               47.45%
-#             2. HMM:       94.36%               50.75%
-#         3. Complex:       94.63%               52.15%
-
-# Gibbs 500 with 250 burned in
-#==> So far scored 2000 sentences with 29442 words.
-#                   Words correct:     Sentences correct: 
-#   0. Ground truth:      100.00%              100.00%
-#         1. Simple:       93.92%               47.45%
-#            2. HMM:       94.36%               50.75%
-#        3. Complex:       94.68%               52.35%
 
 #
-# Gibbs = 1000
-
-# ==> So far scored 2000 sentences with 29442 words.
-#                   Words correct:     Sentences correct: 
-#   0. Ground truth:      100.00%              100.00%
-#          1. Simple:       93.92%               47.45%
-#             2. HMM:       94.36%               50.75%
-#         3. Complex:       94.67%               52.25%
-
-# Gibbs = 2000
-
-# ==> So far scored 2000 sentences with 29442 words.
-#                   Words correct:     Sentences correct: 
-#   0. Ground truth:      100.00%              100.00%
-#         1. Simple:       93.92%               47.45%
-#            2. HMM:       94.36%               50.75%
-#        3. Complex:       94.65%               52.30%
-
-# Gibbs = 1000 with 500 burn-in
-#==> So far scored 2000 sentences with 29442 words.
-#                   Words correct:     Sentences correct: 
-#   0. Ground truth:      100.00%              100.00%
-#         1. Simple:       93.92%               47.45%
-#            2. HMM:       94.36%               50.75%
-#        3. Complex:       94.67%               52.10%
 
 
 import random
@@ -281,7 +235,7 @@ class Solver:
                 # Flip the coin and assign new point of speech
                 ns[i] = self.coin_flip(ratios)
 
-                if g >= 50:
+                if g >= 0: # For burn-in, disregard the first n amount.  currently at 0, meaning we use all data points
                     gibbs_samples[i][ns[i]] += 1
             
         return [gibbs_samples[i].most_common(1)[0][0] for i in range(len(sentence))]
