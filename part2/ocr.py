@@ -34,9 +34,23 @@
 # 
 # If you look into my code, you will see lots of pO_of_L commented out of my
 # code.  These represent the many different emission probabilities that I tried.
-# The biggest issue I faced with that is that many of the methods preferred
-# absolute pixel matches.  For the punctation and blank spaces, those would have
-# very high hit ratios, despite, it being mostly not useful information.
+# I probably spent about 10 hours trying to get my emission probabilities to
+# work in a reasonable fashion. The biggest issue I faced with that is that many
+# of the methods preferred absolute pixel matches.  For the punctation and blank
+# spaces, those would have very high hit ratios, despite, it being mostly not 
+# useful information.
+#
+# Ultimately, a Piazza post, @615, gave me a method that made sense on how to 
+# handle it, witout using the dampening factor.  In restrospect, I did have a
+# dampening factor, it just looks different.  For the viterbi, What I did is had
+# matching  "*" pixels  worth 10, while matching a " " would be worth 1.25, and
+# noisy pixels would be worth 0.  Then, I would devide them by the total number 
+# of pixels times 10, and then multiply the log of that by 250.  All of those numbers 
+# were found by trial error of raising and lowering the 10, 1.25, 0, 10, and 195.
+# the values that seemed to get the best, consistent results were chosen.  For
+# the simple model, "*" w
+# would be
+
 
 from PIL import Image, ImageDraw, ImageFont
 
@@ -183,7 +197,7 @@ def viterbi(train_letters,test_letters):
         
         # print pO_of_L, log(pO_of_L) *175
         
-        viterbi_model.extend([[0,222*log(pO_of_L), train, train]])  # + log((pL1_count[train]+pL1_smoother)/float(total_pL1+pL1_smoother))
+        viterbi_model.extend([[0,250*log(pO_of_L), train, train]])  # + log((pL1_count[train]+pL1_smoother)/float(total_pL1+pL1_smoother))
     # print sorted(viterbi_model,key=itemgetter(1), reverse=True)
 
     # Rest of text
@@ -213,7 +227,7 @@ def viterbi(train_letters,test_letters):
 
             for n, value, path, last_letter in viterbi_model:
                 new_value = log((pL2_pL1_count[last_letter][train]+smoother) / float(sum(pL2_pL1_count[last_letter].values())+(total_char*smoother))) # *
-                viterbi_temp.extend([[n+1, 222*log(pO_of_L)+value+new_value, path+train, train]])
+                viterbi_temp.extend([[n+1, 250*log(pO_of_L)+value+new_value, path+train, train]])
             viterbi_max = sorted(viterbi_temp, key=itemgetter(1), reverse = True)[0]
             viterbi_maxes.extend([viterbi_max])
         viterbi_model = viterbi_maxes * 1
