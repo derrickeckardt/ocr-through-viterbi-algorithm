@@ -47,7 +47,7 @@ test_data = read_data(test_file)
 print("Testing classifiers...")
 scorer = Score()
 
-Algorithms = ("Simple", "HMM", "Complex")
+Algorithms = ("Simple", "HMM", "Complex", "Voting")
 Algorithm_labels = [ str(i+1) + ". " + Algorithms[i] for i in range(0, len(Algorithms) ) ]
 for (s, gt) in test_data:
 

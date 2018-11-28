@@ -8,6 +8,10 @@
 #
 # Completed on November 25, 2018
 #
+# For the assignment details, please visit:
+#
+# https://github.iu.edu/cs-b551-fa2018/derrick-a3/blob/master/a3.pdf
+#
 ################################################################################
 ################################################################################
 # Part 1 - Part of Speech Tagging
@@ -15,10 +19,10 @@
 ################################################################################
 #
 # Overall, here are the results of the various means of doing part of speech
-# tagging.  One thing to note is that I ran the MCMC at various amounts of Gibbs
-# samples, which are noted in the last column.  In addition, some of those were
-# set to ignore a certain amount of gibbs samples (aka burn-in) for determining
-# the answer.
+# tagging on the bc.test file.  One thing to note is that I ran the MCMC at 
+# various amounts of Gibbs samples, which are noted in the last column.  In
+# addition, some of those were set to ignore a certain amount of gibbs samples 
+# (aka burn-in) for determining the answer.
 #
 # ==> So far scored 2000 sentences with 29442 words.
 #                   Words correct:     Sentences correct: 
@@ -146,17 +150,66 @@
 # Complex Model solved via Markov Chain Monte Carlo
 ################################################################################
 #
+# The MCMC took me a while to grasp onto, but once I did, I understood the
+# the continously iterative process to find the new Gibbs sample.  The trickiest
+# part was continuously recalculate probabiltiies and to make sure to anticipate
+# how to handle sentences with one, two, or three words, in addition to longer
+# sentences.  So, you'll see a lot of if statements to make sure the right ones 
+# are included.
 #
-##
-# Calculating Emissions
+# The design limitations with Counter() became really expensive here, and is
+# likely the reason why my code takes 38 minutes to run for 2000 Gibbs samples.
+# Luckily, as indicated in the table at the beginning, only abut 100 Gibbs
+# samples are needed, since there essentially no difference in performance of
+# of the model, even with burn-in, above 100 Gibbs samples.
 #
-# Using Viterbi
 #
-# MCMC iterations - One of the most 
+################################################################################
+# Voting -- Extra Feature I added
+################################################################################
 #
-
-
+# I added the ability for my code to vote with a fourth method.  In order to
+# make it work, go to line 50 of "label.py" and change:
 #
+#   Algorithms = ("Simple", "HMM", "Complex")
+#
+# to become:
+#
+#   Algorithms = ("Simple", "HMM", "Complex", "Voting")
+#
+# The formatting on the sentences is ugly, but the summary table comes out just
+# fine. Since the MCMC was the most accurate, in the result of a three-way tie,
+# it will default to the MCMC.  Manual inspection sees that these mistagged words
+# words are often rarely used words, which MCMC seems to handle marginally better.
+# As you can see from the summary table, the results are as follow:
+#
+# ==> So far scored 2000 sentences with 29442 words.
+#                   Words correct:     Sentences correct: 
+#   0. Ground truth:      100.00%              100.00%
+#          1. Simple:       93.92%               47.45%
+#             2. HMM:       94.36%               50.75%
+#         3. Complex:       94.66%               51.95%
+#          4. Voting:       94.66%               51.60%
+#
+# There was no improvement in word performance, and went down in sentence 
+# performance!  Honestly, not worth really doing much beyond this initial run.  
+# I suspect that I did not see any improvement becuase all three models use many
+# of the same probabilities so they are not fully independent of each other.  In
+# all likelihood, the rare words are tagged the same 2 out of 3 times, and 
+# judging by this, the "wrong" words are often different wrong words for
+# different methods.
+#
+################################################################################
+# Opportunities for Improvement
+################################################################################
+#
+# The biggest way to improve the code is speed up the process of calculating the
+# new gibbs samples.  if there is better way to store the probabilities in
+# a dictionary and also have it work for unknown keys, that would substantially
+# improve the runtime of the program  After four assignments, it's clear that
+# the best way to improve my code's runtime.  With that said, my code definitely
+# runs much better now than it did when I first started the class.  I doubt I
+# could have programmed this acitivity before.
 
 
 import random
@@ -368,11 +421,16 @@ class Solver:
         return likely_path
         
     def voting(self,sentence):
-        votes = [self.simplified(sentence), self.complex_mcmc(sentence), self.hmm_viterbi(sentence)]
+        votes = [self.simplified(sentence), self.hmm_viterbi(sentence), self.complex_mcmc(sentence)]
         output_votes = []
         for i in range(len(votes[0])):
             vote_counter = Counter([votes[j][i] for j in range(len(votes))])
-            output_votes.extend([vote_counter.most_common(1)[0][0]])
+            # Check if it's a three-way tie, if so, default to complex_mcmc, since
+            # that has highest overall accuracy, otherwise, but the winner.
+            if vote_counter.most_common(1)[0][1] == 1:
+                output_votes.extend([votes[2][i]])
+            else:
+                output_votes.extend([vote_counter.most_common(1)[0][0]])
         return output_votes
     
     # This solve() method is called by label.py, so you should keep the interface the
