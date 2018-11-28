@@ -24,14 +24,29 @@
 ################################################################################
 #
 # This was really fun.  This is something that I've seen in real life, and now I
-# understand what it trying to do.  While our version was simplified, and I have
-# a deeper appreciation for what actually needed to happen in order to complete
+# understand what it trying to do.  While our version was simplified, I have
+# a deeper appreciation for what actually needs to happen in order to complete
 # this kind of work.
 #
-# My program takes about 10 seconds to run per test case.  For the 20 new
+# My program takes about 10 to 12 seconds to run per test case.  For the 20 new
 # test cases that Prof. Crandall mentioned in Piazza @641, I would expect my
 # program to tkae about 4 minutes or less to complete.
 # 
+################################################################################
+# Defining the HMM
+################################################################################
+#
+# The HMM I defined for this example, is similar to the one that was used in
+# Figure 1a of the assignment.  Drawn with text it would be:
+#
+# L1 -> O1, L1 -> L2, L2 -> O2, L2 -> L3.....Ln -> On, Ln-1 -> Ln
+#
+# Where L is the L letter state, and O is the observation that our program sees.
+# Then when the data is trained, I had to find P(Li) and P(Li+1| Li) from a
+# training text data set (I used bc.train from part 1).  Later I would have to 
+# estimate P(Oi | Li) based on the training letter images. See below for more on
+# the details of that struggle.
+#
 ################################################################################
 # Reusing Code - Simple and Viterbi
 ################################################################################
@@ -49,7 +64,8 @@
 # The biggest decision on adapting my Part 1 functions was how to handle the 
 # emission probabilities, which ended up being a serious issue, since I could
 # not find emission probabilities that functioned terribly well.  I would get
-# lines of j
+# lines of just blanks or punctuation for my results, until I really figured out
+# how to address emission probabilities. (see next)
 # 
 ###############################################################################
 # Emission Probabilities
