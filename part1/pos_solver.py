@@ -61,23 +61,69 @@
 # code.
 # 
 # Once I settled on that, I put the needed variables inside of my def __init__
-# or my def train().
+# or my def train().  This resulted in finding the variables of P(Wi | Si),
+# P(S1), P(Si), P (Si+1 | S), P(Si+2| Si+1, Si)
 #
 # One item to also note is that I added a constant c in there that would be used
 # for smoothing when unknown words or words used in with a new POS.  While
 # initially set to 1, it later gets changed to 1 / total words.
 #
-#
 ################################################################################
 # Calculating Posteriors and Simple Model
 ################################################################################
 #
+# The nice thing about this, was once I figured out how to find the posteriors,
+# the simple model was more or else completed, since the model shown in Figure
+# 1b represents the simpliest bayes net we could have, where the posteriors is
+# is what we would be looking for in each word.
 #
+# The first thing we run into here is the issue with words in the test set that
+# our model has no previous knowledge of.  In order to account for this, I added
+# a constant c that added a tiny amount to the numerator and tiny amount to the
+# denominator.  This allows for our model to consider a word being used in all
+# 12 different Parts of Speech, without breaking our program.
+#
+# Once the values for the posteriors are calculated for the word with each of
+# the 12 parts of speech, the most likely word is simply the word with highest
+# value.  Then
+#
+# One trade-off made on the simple model was whether I should use P(S1) or P(Si)
+# for the first word.  Since the simple model does not imply any knowledge
+# of the other words, and word order really does not matter, and I wanted my
+# observation (w) to be able to pull from as large a dataset as possible, so I 
+# went with P (Si) for the simple model.  However, for Viterbi and the MCMC, 
+# where the first word multiplies into other words, it was more important to use
+# P(S1) since word order matters more there.
+#
+# I also, then set-up the posterior models for the Viterbi and Complex, which
+# involved multiplying in other factors.  Since those values have already been
+# calculated during training, it was not that difficult. The hardest part was 
+# making sure it managed to account for the first, second, and second-to-last, 
+# and last words of sentence, since they didn't always have the same factors
+# weighed in, which is more complex than the 
+#
+# I was proud that I recognized that the first word of the HMM and Complex
+# models were the same as a one-word Simple, and the second word of the complex
+# was the same as a two-word HMM.  That allowed for some code simplification.
+#
+# At this level, i noticed a limitation of the design decision to use Counter(),
+# which I was glowing about before.  Since I liked having Counter() since it
+# handled unknown keys well, it also meant that I couldn't have float numbers in
+# my dictionary.  Which meant I had to calculate the probabilities of each
+# value on the fly, resulting in additional calculations, which likely slow down
+# my code.  I still think this is better since the way it handles unknown keys;
+# however, i would welcome finding another method that allowed me to simplify
+# my code
 #
 ################################################################################
 # Hidden Markov Model solved via Viterbi Model
 ################################################################################
 #
+# When, I finished implementing it, I was amazed at the simplicity and how
+# efficiently it worked.  As an alum of the USC Viterbi School of Engineering,
+# I was incredibly proud to be able to finally get an understanding of it.
+#
+# 
 #
 ################################################################################
 # Complex Model solved via Markov Chain Monte Carlo
@@ -135,7 +181,7 @@ class Solver:
         if model == "Simple" or "Voting":
             interim = 0
             for word,part in zip(sentence,label):
-                # Added plus one to numerator and denominator to smooth for unknown words
+                # Added constance c to numerator and denominator to smooth for unknown words
                 interim += log(((self.p_wi_si[part][word]+self.c) / float(self.p_si[part]+self.c)) * ((self.p_si[part] + self.c)/float(self.unique_words+self.c)))
             return interim
         elif model == "HMM":
