@@ -3,8 +3,8 @@
 # ./ocr.py : Perform optical character recognition, usage:
 #     ./ocr.py train-image-file.png train-text.txt test-image-file.png
 # 
-###################################
-# CS B551 Fall 2018, Assignment #3
+###############################################################################
+# CS B551 Fall 2018, Assignment #3 - Part 2: Optical Character Recognition (OCR)
 #
 # Completed by:
 # Derrick Eckardt
@@ -13,9 +13,30 @@
 #
 # Completed on November 25, 2018
 #
-####
-# Put your report here!!
-####
+# For the assignment details, please visit:
+#
+# https://github.iu.edu/cs-b551-fa2018/derrick-a3/blob/master/a3.pdf
+#
+################################################################################
+################################################################################
+# Part 1 - Part of Speech Tagging
+################################################################################
+################################################################################
+#
+# 
+# 
+# 
+################################################################################
+# Emission Probabilities
+################################################################################
+# 
+# Wow.  This was by far one of the most difficult items that i dealt with.
+# 
+# If you look into my code, you will see lots of pO_of_L commented out of my
+# code.  These represent the many different emission probabilities that I tried.
+# The biggest issue I faced with that is that many of the methods preferred
+# absolute pixel matches.  For the punctation and blank spaces, those would have
+# very high hit ratios, despite, it being mostly not useful information.
 
 from PIL import Image, ImageDraw, ImageFont
 

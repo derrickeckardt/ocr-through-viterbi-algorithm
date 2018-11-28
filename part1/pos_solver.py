@@ -34,17 +34,18 @@
 #         3. Complex:       94.52%               51.15%  Gibbs = 10
 #         3. Complex:       94.48%               51.15%  Gibbs = 25
 #         3. Complex:       94.55%               51.45%  Gibbs = 50
-#         3. Complex:       94.65%               52.05%  Gibbs = 100 (current)
+#         3. Complex:       94.65%               52.05%  Gibbs = 100
 #         3. Complex:       94.67%               52.10%  Gibbs = 100, burn =50
-#         3. Complex:       94.69%               52.25%  Gibbs = 200
+#         3. Complex:       94.69%               52.25%  Gibbs = 200 (default)
 #         3. Complex:       94.63%               52.15%  Gibbs = 500
 #         3. Complex:       94.68%               52.35%  Gibbs = 500, burn = 250
 #         3. Complex:       94.67%               52.25%  Gibbs = 1000
 #         3. Complex:       94.67%               52.30%  Gibbs = 1000 burn = 500
 #         3. Complex:       94.65%               52.30%  Gibbs = 2000
 
-# Ultimately, I went with 100 Gibbs samples as my default MCMC setting, since at
-# that level it looked like there was no noticable improvement in performance. 
+# Ultimately, I went with 200 Gibbs samples as my default MCMC setting, since at
+# that level it looked like there was no noticable improvement in performance.
+# It takes just about three and half minutes to run on the SOIC SILO server.
 # As computer scientists, we have to trade-off performance against resources,
 # this is just one of many.  I'll get back to the rest of the MCMC decision
 # later, I just wanted to put the results up-front.
