@@ -1,5 +1,5 @@
-###################################
-# CS B551 Fall 2018, Assignment #3
+###############################################################################
+# CS B551 Fall 2018, Assignment #3, Part 1 - Part of Speech Tagging
 #
 # Completed by:
 # Derrick Eckardt
@@ -36,6 +36,7 @@
 #         3. Complex:       94.55%               51.45%  Gibbs = 50
 #         3. Complex:       94.65%               52.05%  Gibbs = 100 (current)
 #         3. Complex:       94.67%               52.10%  Gibbs = 100, burn =50
+#         3. Complex:       94.69%               52.25%  Gibbs = 200
 #         3. Complex:       94.63%               52.15%  Gibbs = 500
 #         3. Complex:       94.68%               52.35%  Gibbs = 500, burn = 250
 #         3. Complex:       94.67%               52.25%  Gibbs = 1000
