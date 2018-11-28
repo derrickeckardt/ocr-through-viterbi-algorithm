@@ -19,48 +19,103 @@
 #
 ################################################################################
 ################################################################################
-# Part 1 - Part of Speech Tagging
+# Part 2 - Optical Character Recognition (OCR)
 ################################################################################
 ################################################################################
 #
-# 
-# 
+# This was really fun.  This is something that I've seen in real life, and now I
+# understand what it trying to do.  While our version was simplified, and I have
+# a deeper appreciation for what actually needed to happen in order to complete
+# this kind of work.
+#
+# My program takes about 10 seconds to run per test case.  For the 20 new
+# test cases that Prof. Crandall mentioned in Piazza @641, I would expect my
+# program to tkae about 4 minutes or less to complete.
 # 
 ################################################################################
+# Reusing Code - Simple and Viterbi
+################################################################################
+# 
+# For my two main algorithms, it was really nice to be able to reuse my code
+# from Part 1.  I decided to bring the code in directly to it (instead of an
+# import), because the functions had to be changed for the OCR cases, and for
+# simplicity, it made sense to have them there.  Otherwise, I would have to
+# modify the other code so that it worked for everything, which would be
+# significatly more difficult in the long run.  If I was a programmer that used
+# viterbi everyday, I would find a way to make a more all-purpose algorithm, 
+# that took set inputs.  For this purpose, the benefits would not be reaped in
+# time.
+#
+# The biggest decision on adapting my Part 1 functions was how to handle the 
+# emission probabilities, which ended up being a serious issue, since I could
+# not find emission probabilities that functioned terribly well.  I would get
+# lines of j
+# 
+###############################################################################
 # Emission Probabilities
 ################################################################################
 # 
-# Wow.  This was by far one of the most difficult items that i dealt with.
+# Wow.  This was by far one of the most difficult items that i dealt with.  I 
+# probably spent about 10 hours trying to get my emission probabilities to
+# work in a reasonable fashion.
 # 
 # If you look into my code, you will see lots of pO_of_L commented out of my
 # code.  These represent the many different emission probabilities that I tried.
-# I probably spent about 10 hours trying to get my emission probabilities to
-# work in a reasonable fashion. The biggest issue I faced with that is that many
-# of the methods preferred absolute pixel matches.  For the punctation and blank
-# spaces, those would have very high hit ratios, despite, it being mostly not 
-# useful information.
+# The biggest issue I faced with that is that many of the methods preferred
+# absolute pixel matches, such as the one suggested in the assignment prompt.
+# For the punctation and blank spaces, those would have very high hit ratios,
+# despite, it being mostly not useful information. Results were akin like:
 #
+#  "                        "  or "!!!!!!!!!!!!!!!!!" or "?    '       !"
+#
+# Those don't remotely resemble the correct text.  So, I needed something new.
 # Ultimately, a Piazza post, @615, gave me a method that made sense on how to 
-# handle it, witout using the dampening factor.  In restrospect, I did have a
+# handle it, without using the dampening factor.  In restrospect, I did have a
 # dampening factor, it just looks different.  For the viterbi, What I did is had
 # matching  "*" pixels  worth 10, while matching a " " would be worth 1.25, and
 # noisy pixels would be worth 0.  Then, I would devide them by the total number 
-# of pixels times 10, and then multiply the log of that by 250.  All of those numbers 
-# were found by trial error of raising and lowering the 10, 1.25, 0, 10, and 195.
-# the values that seemed to get the best, consistent results were chosen.  For
-# the simple model, "*" w
-# would be
+# of pixels times 10, and then multiply the log of that by 250.  All the numbers 
+# were found by trial error of raising and lowering them. 10, 1.25, 0, 10, and 
+# 250 were the values that seemed to get the most consistent results.  For
+# the simple model, "*" is worth 1, a blank spot is worth 0.05, 0 for noise, 
+# still divide by number of pixels times 10, and then do not multiply the log by
+# anything (or multiply by 1).  This was more trial and error, and reinforced
+#
+# In the future, I would improve on this by having a script that tests all
+# of those parameters to find which one.  Given another week, I would do that
+# next.  Of course, that runs the risk of overfitting, however, I would expect
+# to get a range of values that would provide an idea of what will get me in the
+# top range of what to expect.
+#
+################################################################################
+# Final Answer
+################################################################################
+# 
+# Ultimately, I had my algorithm use the viterbi algorithm as the final answer
+# this was function that it was more accurate for the noisy test cases, which
+# gave the same ones too many problems.  I did find that the sample one seemed
+# to work better on the clearer examples, and in two instances, it was actually
+# better than viterbi
+# 
+################################################################################
+# Use a Better and/or Legal Dictionary -- Opportunity for Improvement
+################################################################################
+# 
+# The next way to improve this would be to take an-in-depth dictionary, and 
+# compare provisional results against it, and throw out the options  (or downgrade
+# tehir score) that use words that do not exist in a robust dictionary.  That
+# would clean up additional mistakes.
+#
+# Since this was for legal documents, a training text document for legal text
+# would also be helpful, as it would pick up the pecular traits of the images,
+# such as latin words, lots of punctations, and abbreviations.
+
 
 
 from PIL import Image, ImageDraw, ImageFont
 
-# This article helped figure out how to call different folder
-# https://www.reddit.com/r/learnpython/comments/3pzo9a/import_class_from_another_python_file/
 import sys
-sys.path.append('../part1/')
-
-from pos_scorer import Score    
-from pos_solver import *
+from math import log
 from operator import itemgetter
 from collections import Counter
 from pprint import pprint
@@ -198,7 +253,6 @@ def viterbi(train_letters,test_letters):
         # print pO_of_L, log(pO_of_L) *175
         
         viterbi_model.extend([[0,250*log(pO_of_L), train, train]])  # + log((pL1_count[train]+pL1_smoother)/float(total_pL1+pL1_smoother))
-    # print sorted(viterbi_model,key=itemgetter(1), reverse=True)
 
     # Rest of text
     for test in test_letters[1:]:
@@ -231,8 +285,6 @@ def viterbi(train_letters,test_letters):
             viterbi_max = sorted(viterbi_temp, key=itemgetter(1), reverse = True)[0]
             viterbi_maxes.extend([viterbi_max])
         viterbi_model = viterbi_maxes * 1
-        # print sorted(viterbi_model,key=itemgetter(1), reverse=True)
-
 
     # backtrack now
     likely_path = sorted(viterbi_model,key=itemgetter(1), reverse=True)[0][2]
@@ -240,7 +292,9 @@ def viterbi(train_letters,test_letters):
     # return likely_path
     return likely_path
 
+# Output Results
 print "Simple:  "+simple(train_letters, test_letters)
-print "Viterbi: "+viterbi(train_letters, test_letters)
+viterbi_result = viterbi(train_letters, test_letters)
+print "Viterbi: "+viterbi_result
 print "Final Answer:"
-print viterbi(train_letters, test_letters)
+print viterbi_result
