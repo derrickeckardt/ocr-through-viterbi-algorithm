@@ -8,9 +8,12 @@
 #
 # Completed on November 25, 2018
 #
-####
+################################################################################
+################################################################################
 # Part 1 - Part of Speech Tagging
-####
+################################################################################
+################################################################################
+#
 # Overall, here are the results of the various means of doing part of speech
 # tagging.  One thing to note is that I ran the MCMC at various amounts of Gibbs
 # samples, which are noted in the last column.  In addition, some of those were
@@ -36,13 +39,52 @@
 #         3. Complex:       94.65%               52.30%  Gibbs = 2000
 
 # Ultimately, I went with 100 Gibbs samples as my default MCMC setting, since at
-# that level it looked like there was no real improvement in performance.  As
-# computer scientists, we have to trade-off performance against resources. To get the 
-, while I found almost no difference at
-# 25 Gibbs samples.  I ran it all the way upto 3000 iterations, and got nearly 
-# identical results.
-
+# that level it looked like there was no noticable improvement in performance. 
+# As computer scientists, we have to trade-off performance against resources,
+# this is just one of many.  I'll get back to the rest of the MCMC decision
+# later, I just wanted to put the results up-front.
+#
+################################################################################
+# Training the Model
+################################################################################
+#
+# Loading the training data was probably one of the easier parts of the process,
+# but it was not without it's decisions.  While loading the data in, I had to
+# arrange the information so that I could easily and quickly get that 
+# information, with a dictionary.  But, dictionaries break with unknown keys.
+# One of the most useful things for this is that since there were millions of
+# training words and millions more that could be in a test set, I needed to 
+# compensate for ones that were not in the training model, and i did not want to
+# have to check to see if I had previously seen it.  Luckily, python does this
+# will with Counter(), which is a version of a dictionary for counts, which if
+# asked for an unknown key, will return 0, instead of a keyError and break my
+# code.
 # 
+# Once I settled on that, I put the needed variables inside of my def __init__
+# or my def train().
+#
+# One item to also note is that I added a constant c in there that would be used
+# for smoothing when unknown words or words used in with a new POS.  While
+# initially set to 1, it later gets changed to 1 / total words.
+#
+#
+################################################################################
+# Calculating Posteriors and Simple Model
+################################################################################
+#
+#
+#
+################################################################################
+# Hidden Markov Model solved via Viterbi Model
+################################################################################
+#
+#
+################################################################################
+# Complex Model solved via Markov Chain Monte Carlo
+################################################################################
+#
+#
+##
 # Calculating Emissions
 #
 # Using Viterbi
@@ -146,10 +188,6 @@ class Solver:
         # Totals for use later
         self.unique_words = sum(self.p_si.values())
         self.unique_lines = sum(self.p_s1.values())
-        # print self.p_s1
-        # print self.p_si1_si
-        # print self.p_si2_si1_si
-        # return self.p_s1, self.p_si1_si, self.p_wi_si
         self.c = 1 / float(self.unique_words)
         
     
