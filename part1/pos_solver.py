@@ -121,9 +121,26 @@
 #
 # When, I finished implementing it, I was amazed at the simplicity and how
 # efficiently it worked.  As an alum of the USC Viterbi School of Engineering,
-# I was incredibly proud to be able to finally get an understanding of it.
+# I was incredibly proud to be able to finally get an understanding of it.  And,
+# it only took 17 lines of code, which probably could further cut down.  As it,
+# it's easy to read right now, so that's why I left it like, as opposed to dense
+# python code.
 #
+# The actual implementation of it was fairly straightforward.  I establish the
+# starting position for the first word in each of the 12 POS states.  Many 
+# often only had the constant c contributed to them.  Which, was okay, because
+# if Viterbi works properly, it will work itself out.
 # 
+# Then, I moved iteratively moved down the sentence to the next word.  Each of 
+# those 12 states was then multiplied by the corresponding emission and 
+# transmission probabilties for the 12 states again.  that was 144 calculations
+# each time.  I took the max for each of 12 states,  and then got back down to
+# 12 states, and then repeated.
+#
+# And that was it.  It worked.  The biggest decision I had to make was whether
+# I should trim my code some more.  It worked fast, within a second or two.  So
+# since there would be diminishing returns on that, I opted not too.  For a super
+# large dataset, it might be a problem.  But right now, it isn't.
 #
 ################################################################################
 # Complex Model solved via Markov Chain Monte Carlo
